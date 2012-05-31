@@ -90,16 +90,6 @@
       return edges;
     };
 
-    HalfEdge.prototype.setFacet = function(f) {
-      var he, _i, _len, _ref;
-      _ref = this.getLoopEdges();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        he = _ref[_i];
-        he.facet = f;
-      }
-      return f.edge = f;
-    };
-
     HalfEdge.prototype.setCurve = function(c) {
       var i;
       this.curve = c;

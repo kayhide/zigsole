@@ -6,7 +6,7 @@ class Puzzle
     @pieces = []
   
   initizlize: (@image, @cutter) ->
-    @stage.enableMouseOver()
+    #@stage.enableMouseOver()
     @stage.canvas.onmousewheel = (e) =>
       if e.wheelDelta > 0
         @zoom(e.x, e.y, 1.2)
@@ -23,8 +23,10 @@ class Puzzle
     
     @pieces = @cutter.cut(@image)
     for p in @pieces
-      @container.addChild(p)
-      p.onPress = @onPiecePressed
+      p.shape = new Shape()
+      p.draw(image)
+      @container.addChild(p.shape)
+      p.shape.onPress = @onPiecePressed
 
     @stage.addChild(@container)
   
@@ -41,11 +43,9 @@ class Puzzle
   
   onStagePressed: (e) =>
     window.console.log('stage pressed: ' + e.stageX + ', ' + e.stageY)
-    window.console.log(this)
     last_point = new Point(e.stageX, e.stageY)
     e.onMouseMove = (ev) =>
       pt = new Point(ev.stageX, ev.stageY)
-      window.console.log(pt.y - last_point.y)
       @container.x += pt.x - last_point.x
       @container.y += pt.y - last_point.y
       

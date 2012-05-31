@@ -63,11 +63,6 @@ class HalfEdge
       he = he.next
     edges
 
-  setFacet: (f) ->
-    for he in @getLoopEdges()
-      he.facet = f
-    f.edge = f
-
   setCurve: (c) ->
     @curve = c
     @mate.curve = (c[i] for i in [(c.length - 1)..0])

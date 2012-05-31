@@ -14,6 +14,8 @@
       cutter = new StandardGridCutter();
       cutter.nx = 10;
       cutter.ny = Math.round(cutter.nx / image.aspect_ratio);
+      cutter.width = image.width;
+      cutter.height = image.height;
       cutter.fluctuation = 0.3;
       cutter.irregularity = 0.2;
       puzzle.initizlize(image, cutter);

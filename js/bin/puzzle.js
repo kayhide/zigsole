@@ -20,7 +20,6 @@
         _this = this;
       this.image = image;
       this.cutter = cutter;
-      this.stage.enableMouseOver();
       this.stage.canvas.onmousewheel = function(e) {
         if (e.wheelDelta > 0) {
           return _this.zoom(e.x, e.y, 1.2);
@@ -38,8 +37,10 @@
       _ref = this.pieces;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         p = _ref[_i];
-        this.container.addChild(p);
-        p.onPress = this.onPiecePressed;
+        p.shape = new Shape();
+        p.draw(image);
+        this.container.addChild(p.shape);
+        p.shape.onPress = this.onPiecePressed;
       }
       return this.stage.addChild(this.container);
     };
@@ -60,12 +61,10 @@
       var last_point,
         _this = this;
       window.console.log('stage pressed: ' + e.stageX + ', ' + e.stageY);
-      window.console.log(this);
       last_point = new Point(e.stageX, e.stageY);
       return e.onMouseMove = function(ev) {
         var pt;
         pt = new Point(ev.stageX, ev.stageY);
-        window.console.log(pt.y - last_point.y);
         _this.container.x += pt.x - last_point.x;
         _this.container.y += pt.y - last_point.y;
         last_point = pt;

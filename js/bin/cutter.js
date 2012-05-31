@@ -12,36 +12,8 @@
       this.irregularity = 0;
     }
 
-    Cutter.prototype.cut = function(image) {
-      this.width = image.width;
-      this.height = image.height;
-    };
-
-    Cutter.prototype.getBoundary = function(points) {
-      var pt, pt0, pt1, _i, _len, _ref;
-      if (points.length === 0) {
-        return null;
-      } else {
-        pt0 = points[0].clone();
-        pt1 = points[0].clone();
-        _ref = points.slice(1);
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          pt = _ref[_i];
-          if (pt.x < pt0.x) {
-            pt0.x = pt.x;
-          }
-          if (pt.y < pt0.y) {
-            pt0.y = pt.y;
-          }
-          if (pt.x > pt1.x) {
-            pt1.x = pt.x;
-          }
-          if (pt.y > pt1.y) {
-            pt1.y = pt.y;
-          }
-        }
-        return [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y];
-      }
+    Cutter.prototype.cut = function() {
+      return [];
     };
 
     return Cutter;
