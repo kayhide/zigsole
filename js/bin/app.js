@@ -11,9 +11,11 @@
     image.onload = function() {
       var cutter;
       image.aspect_ratio = image.width / image.height;
-      cutter = new GridCutter();
+      cutter = new StandardGridCutter();
       cutter.nx = 10;
       cutter.ny = Math.round(cutter.nx / image.aspect_ratio);
+      cutter.fluctuation = 0.3;
+      cutter.irregularity = 0.2;
       puzzle.initizlize(image, cutter);
       puzzle.update();
       return $("#info").text("" + cutter.count + " ( " + cutter.nx + " x " + cutter.ny + " )");

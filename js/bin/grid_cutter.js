@@ -9,34 +9,112 @@
     __extends(GridCutter, _super);
 
     function GridCutter() {
+      GridCutter.__super__.constructor.apply(this, arguments);
       this.nx = 1;
       this.ny = 1;
     }
 
     GridCutter.prototype.cut = function(image) {
-      var h, pieces, pt00, pt01, pt10, pt11, shape, w, x, y, _i, _j, _ref, _ref1;
+      var curves, e, edges, h, he, loop_curve, p, parity, pieces, shape, w, x, y, _i, _j, _k, _l, _len, _m, _ref, _ref1, _ref2, _ref3, _ref4;
       GridCutter.__super__.cut.call(this, image);
       this.count = this.nx * this.ny;
       w = Math.round(this.width / this.nx);
       h = Math.round(this.height / this.ny);
-      pieces = new Array();
-      this.parity = 1;
+      edges = this.create_edges();
+      this.create_points(edges);
+      parity = 1;
       for (y = _i = 0, _ref = this.ny; 0 <= _ref ? _i < _ref : _i > _ref; y = 0 <= _ref ? ++_i : --_i) {
-        this.parity *= -1;
+        parity *= -1;
         for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
-          pt00 = new Point(x * w, y * h);
-          pt01 = new Point(x * w, y * h + h);
-          pt10 = new Point(x * w + w, y * h);
-          pt11 = new Point(x * w + w, y * h + h);
-          shape = new Shape();
-          shape.graphics.beginBitmapFill(image);
-          this.parity *= -1;
-          this.draw_curve(shape.graphics, this.connect_curves([this.create_curve(pt00, pt01, this.parity), this.create_curve(pt01, pt11, -this.parity), this.create_curve(pt11, pt10, this.parity), this.create_curve(pt10, pt00, -this.parity)]));
-          shape.boundary = [x * w, y * h, w, h];
+          parity *= -1;
+          _ref2 = edges[y][x].getLoopEdges();
+          for (_k = 0, _len = _ref2.length; _k < _len; _k++) {
+            he = _ref2[_k];
+            parity *= -1;
+            p = Math.random() < this.irregularity ? parity : -parity;
+            if (he.curve == null) {
+              he.setCurve(this.create_curve(he, p));
+            }
+          }
+        }
+      }
+      pieces = new Array();
+      for (y = _l = 0, _ref3 = this.ny; 0 <= _ref3 ? _l < _ref3 : _l > _ref3; y = 0 <= _ref3 ? ++_l : --_l) {
+        for (x = _m = 0, _ref4 = this.nx; 0 <= _ref4 ? _m < _ref4 : _m > _ref4; x = 0 <= _ref4 ? ++_m : --_m) {
+          he = edges[y][x];
+          curves = (function() {
+            var _len1, _n, _ref5, _results;
+            _ref5 = he.getLoopEdges();
+            _results = [];
+            for (_n = 0, _len1 = _ref5.length; _n < _len1; _n++) {
+              e = _ref5[_n];
+              _results.push(e.curve);
+            }
+            return _results;
+          })();
+          shape = he.facet;
+          shape.graphics.beginBitmapFill(image).beginStroke(2);
+          loop_curve = this.connect_curves(curves);
+          this.draw_curve(shape.graphics, loop_curve);
+          shape.boundary = this.getBoundary(loop_curve);
+          shape.cache.apply(shape, shape.boundary);
           pieces.push(shape);
         }
       }
       return pieces;
+    };
+
+    GridCutter.prototype.create_edges = function() {
+      var edges, he, x, y, _i, _j, _k, _l, _ref, _ref1, _ref2, _ref3;
+      edges = [];
+      for (y = _i = 0, _ref = this.ny; 0 <= _ref ? _i < _ref : _i > _ref; y = 0 <= _ref ? ++_i : --_i) {
+        edges.push([]);
+        for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
+          he = HalfEdge.createLoop(4);
+          he.setFacet(new Shape());
+          edges[y].push(he);
+        }
+      }
+      for (y = _k = 0, _ref2 = this.ny; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; y = 0 <= _ref2 ? ++_k : --_k) {
+        for (x = _l = 0, _ref3 = this.nx; 0 <= _ref3 ? _l < _ref3 : _l > _ref3; x = 0 <= _ref3 ? ++_l : --_l) {
+          if (x < this.nx - 1) {
+            edges[y][x].next.next.setMate(edges[y][x + 1]);
+          }
+          if (y > 0) {
+            edges[y][x].next.next.next.setMate(edges[y - 1][x].next);
+          }
+          if (x > 0) {
+            edges[y][x].setMate(edges[y][x - 1].next.next);
+          }
+          if (y < this.ny - 1) {
+            edges[y][x].next.setMate(edges[y + 1][x].next.next.next);
+          }
+        }
+      }
+      return edges;
+    };
+
+    GridCutter.prototype.create_points = function(edges) {
+      var h, pos, vec, w, x, y, _i, _j, _ref, _ref1;
+      w = Math.round(this.width / this.nx);
+      h = Math.round(this.height / this.ny);
+      for (y = _i = 0, _ref = this.ny; 0 <= _ref ? _i <= _ref : _i >= _ref; y = 0 <= _ref ? ++_i : --_i) {
+        for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
+          vec = new Point(w, h).scale(this.fluctuation * 0.5);
+          vec.x = x === 0 || x === this.nx ? 0 : vec.x * (Math.random() * 2 - 1);
+          vec.y = y === 0 || y === this.ny ? 0 : vec.y * (Math.random() * 2 - 1);
+          pos = new Point(x * w, y * h).add(vec);
+          if (x === 0 && y === 0) {
+            edges[y][x].setPoint(pos);
+          } else if (x === 0) {
+            edges[y - 1][x].next.setPoint(pos);
+          } else if (y === 0) {
+            edges[y][x - 1].next.next.next.setPoint(pos);
+          } else {
+            edges[y - 1][x - 1].next.next.setPoint(pos);
+          }
+        }
+      }
     };
 
     GridCutter.prototype.draw_curve = function(g, points) {
@@ -46,7 +124,11 @@
       _results = [];
       for (i = _i = 0, _len = _ref.length, _step = 3; _i < _len; i = _i += _step) {
         pt = _ref[i];
-        _results.push(g.bezierCurveTo(points[i + 1].x, points[i + 1].y, points[i + 2].x, points[i + 2].y, points[i + 3].x, points[i + 3].y));
+        if (points[i + 2] != null) {
+          _results.push(g.bezierCurveTo(points[i + 1].x, points[i + 1].y, points[i + 2].x, points[i + 2].y, points[i + 3].x, points[i + 3].y));
+        } else {
+          _results.push(g.lineTo(points[i + 1].x, points[i + 1].y, points[i + 3].x, points[i + 3].y));
+        }
       }
       return _results;
     };
@@ -63,29 +145,6 @@
           points.push(pt);
         }
       }
-      return points;
-    };
-
-    GridCutter.prototype.create_curve = function(pt0, pt1, parity) {
-      var mtx, points, v1, v2;
-      if (parity == null) {
-        parity = 1;
-      }
-      points = [];
-      points.push(pt0);
-      v1 = pt1.subtract(pt0).scale(0.5);
-      mtx = new Matrix2D();
-      mtx.rotate(parity * Math.PI * 2 / 3);
-      v2 = v1.apply(mtx);
-      points.push(pt0.add(v1.scale(0.2)));
-      points.push(pt0.add(v1));
-      points.push(pt0.add(v1).add(v2.scale(0.5)));
-      points.push(pt0.add(v1).add(v2));
-      points.push(pt0.add(v1.scale(2)).add(v2));
-      points.push(pt0.add(v1.scale(1.5)).add(v2.scale(0.5)));
-      points.push(pt0.add(v1));
-      points.push(pt0.add(v1.scale(1.8)));
-      points.push(pt1);
       return points;
     };
 
