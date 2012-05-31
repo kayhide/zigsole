@@ -33,10 +33,6 @@ var Puzzle = function() {
 var puzzle = new Puzzle();
 
 $(function() {
-  var back = document.getElementById("back");
-  back.width = window.innerWidth;
-  back.height = window.innerHeight;
-  
   var field = $("#field").get(0);
   field.width = window.innerWidth;
   field.height = window.innerHeight;
