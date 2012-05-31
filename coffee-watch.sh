@@ -1,0 +1,1 @@
+coffee -wco js/bin js/src

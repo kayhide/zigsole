@@ -9,6 +9,8 @@
       this.ny = 1;
       this.width = 1;
       this.height = 1;
+      this.fluctuation = 0;
+      this.irregularity = 0;
     }
 
     Cutter.prototype.count = function() {
@@ -16,7 +18,7 @@
     };
 
     Cutter.prototype.cut = function(image) {
-      var h, pieces, shape, w, x, y, _i, _j, _ref, _ref1;
+      var h, pieces, pt0, pt1, shape, w, x, y, _i, _j, _ref, _ref1;
       this.width = image.width;
       this.height = image.height;
       w = Math.round(this.width / this.nx);
@@ -24,9 +26,16 @@
       pieces = new Array();
       for (y = _i = 0, _ref = this.ny; 0 <= _ref ? _i < _ref : _i > _ref; y = 0 <= _ref ? ++_i : --_i) {
         for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
+          pt0 = {
+            x: x * w,
+            y: y * h
+          };
+          pt1 = {
+            x: x * w + w,
+            y: y * h + h
+          };
           shape = new Shape();
-          shape.graphics.beginBitmapFill(image);
-          shape.graphics.drawRoundRect(x * w, y * h, w, h, w * 0.2);
+          shape.graphics.beginBitmapFill(image).moveTo(pt0.x, pt0.y).lineTo(pt0.x + Math.random() * w * 0.3, pt1.y - Math.random() * w * 0.3).lineTo(pt1.x - Math.random() * w * 0.3, pt1.y - Math.random() * w * 0.3).lineTo(pt1.x - Math.random() * w * 0.3, pt0.y + Math.random() * w * 0.3).lineTo(pt0.x, pt0.y);
           shape.boundary = [x * w, y * h, w, h];
           shape.cache.apply(shape, shape.boundary);
           pieces.push(shape);
