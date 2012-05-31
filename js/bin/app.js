@@ -11,12 +11,12 @@
     image.onload = function() {
       var cutter;
       image.aspect_ratio = image.width / image.height;
-      cutter = new Cutter();
+      cutter = new GridCutter();
       cutter.nx = 10;
       cutter.ny = Math.round(cutter.nx / image.aspect_ratio);
       puzzle.initizlize(image, cutter);
       puzzle.update();
-      return $("#info").text("" + (cutter.count()) + " ( " + cutter.nx + " x " + cutter.ny + " )");
+      return $("#info").text("" + cutter.count + " ( " + cutter.nx + " x " + cutter.ny + " )");
     };
     image.src = "/easel/test/AA145_L.jpg";
     window.puzzle = puzzle;
