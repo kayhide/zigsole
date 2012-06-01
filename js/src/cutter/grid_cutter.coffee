@@ -8,6 +8,7 @@ class GridCutter extends Cutter
     @count = @nx * @ny
     w = Math.round(@width / @nx)
     h = Math.round(@height / @ny)
+    @linear_measure = Math.sqrt(w * w + h * h)
 
     pcs = @create_pieces()
     @create_points pcs

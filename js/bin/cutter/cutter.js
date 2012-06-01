@@ -10,11 +10,8 @@
       this.height = 1;
       this.fluctuation = 0;
       this.irregularity = 0;
+      this.linear_measure = 1;
     }
-
-    Cutter.prototype.cut = function() {
-      return [];
-    };
 
     return Cutter;
 

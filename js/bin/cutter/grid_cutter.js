@@ -19,6 +19,7 @@
       this.count = this.nx * this.ny;
       w = Math.round(this.width / this.nx);
       h = Math.round(this.height / this.ny);
+      this.linear_measure = Math.sqrt(w * w + h * h);
       pcs = this.create_pieces();
       this.create_points(pcs);
       this.create_curves(pcs);

@@ -16,7 +16,7 @@
     }
 
     Puzzle.prototype.initizlize = function(image, cutter) {
-      var p, _i, _len, _ref,
+      var i, p, _i, _len, _ref,
         _this = this;
       this.image = image;
       this.cutter = cutter;
@@ -35,9 +35,11 @@
       this.container = new Container();
       this.pieces = this.cutter.cut(this.image);
       _ref = this.pieces;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        p = _ref[_i];
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        p = _ref[i];
+        p.id = i;
         p.shape = new Shape();
+        p.shape.piece = p;
         p.draw(image);
         this.container.addChild(p.shape);
         p.shape.onPress = this.onPiecePressed;
@@ -73,20 +75,35 @@
     };
 
     Puzzle.prototype.onPiecePressed = function(e) {
-      var last_point,
+      var center, last_point, local_point, piece,
         _this = this;
-      window.console.log('shape pressed: ' + e.stageX + ', ' + e.stageY);
+      window.console.log("shape[" + e.target.piece.id + "] pressed: " + e.stageX + ", " + e.stageY);
       this.container.addChild(e.target);
       this.stage.update();
+      piece = e.target.piece;
       last_point = this.container.globalToLocal(e.stageX, e.stageY);
-      return e.onMouseMove = function(ev) {
-        var pt;
-        pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
-        e.target.x += pt.x - last_point.x;
-        e.target.y += pt.y - last_point.y;
-        last_point = pt;
-        return _this.stage.update();
-      };
+      local_point = e.target.globalToLocal(e.stageX, e.stageY);
+      if (local_point.distanceTo(piece.getCenter()) > 0.4 * this.cutter.linear_measure) {
+        center = piece.getCenter();
+        center = e.target.localToLocal(center.x, center.y, this.container);
+        return e.onMouseMove = function(ev) {
+          var pt, vec;
+          pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
+          vec = pt.subtract(last_point);
+          new RotateCommand(e.target.piece, center, vec.x).commit();
+          last_point = pt;
+          return _this.stage.update();
+        };
+      } else {
+        return e.onMouseMove = function(ev) {
+          var pt, vec;
+          pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
+          vec = pt.subtract(last_point);
+          new TranslateCommand(e.target.piece, vec).commit();
+          last_point = pt;
+          return _this.stage.update();
+        };
+      }
     };
 
     return Puzzle;

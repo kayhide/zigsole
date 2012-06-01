@@ -19,4 +19,8 @@
     return new Point(mtx.tx, mtx.ty);
   };
 
+  Point.prototype.distanceTo = function(pt) {
+    return Math.sqrt(Math.pow(pt.x - this.x, 2) + Math.pow(pt.y - this.y, 2));
+  };
+
 }).call(this);

@@ -22,8 +22,10 @@ class Puzzle
     @container = new Container()
     
     @pieces = @cutter.cut(@image)
-    for p in @pieces
+    for p, i in @pieces
+      p.id = i
       p.shape = new Shape()
+      p.shape.piece = p
       p.draw(image)
       @container.addChild(p.shape)
       p.shape.onPress = @onPiecePressed
@@ -53,18 +55,31 @@ class Puzzle
       @stage.update();
   
   onPiecePressed: (e) =>
-    window.console.log('shape pressed: ' + e.stageX + ', ' + e.stageY);
+    window.console.log("shape[#{e.target.piece.id}] pressed: #{e.stageX}, #{e.stageY}");
     @container.addChild(e.target)
     @stage.update()
+
+    piece = e.target.piece
     
     last_point = @container.globalToLocal(e.stageX, e.stageY)
-    e.onMouseMove = (ev) =>
-      pt = @container.globalToLocal(ev.stageX, ev.stageY)
-      e.target.x += pt.x - last_point.x
-      e.target.y += pt.y - last_point.y
-      
-      last_point = pt
-      @stage.update()
+
+    local_point = e.target.globalToLocal(e.stageX, e.stageY)
+    if local_point.distanceTo(piece.getCenter()) > 0.4 * @cutter.linear_measure
+      center = piece.getCenter()
+      center = e.target.localToLocal(center.x, center.y, @container)
+      e.onMouseMove = (ev) =>
+        pt = @container.globalToLocal(ev.stageX, ev.stageY)
+        vec = pt.subtract(last_point)
+        new RotateCommand(e.target.piece, center, vec.x).commit()
+        last_point = pt
+        @stage.update()
+    else
+      e.onMouseMove = (ev) =>
+        pt = @container.globalToLocal(ev.stageX, ev.stageY)
+        vec = pt.subtract(last_point)
+        new TranslateCommand(e.target.piece, vec).commit()
+        last_point = pt
+        @stage.update()
 
 
 @Puzzle = Puzzle

@@ -5,9 +5,7 @@ class Cutter
     @height = 1
     @fluctuation = 0
     @irregularity = 0
-
-  cut: ->
-    []
+    @linear_measure = 1
 
 
 @Cutter = Cutter
