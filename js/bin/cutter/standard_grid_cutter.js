@@ -25,7 +25,7 @@
       v2 = v1.apply(mtx);
       points = [];
       points.push(pt0);
-      if (he.mate.piece != null) {
+      if (he.mate.loop != null) {
         points.push(pt0.add(v1.scale(0.2)));
         points.push(pt0.add(v1));
         points.push(pt0.add(v1).add(v2.scale(0.5)));

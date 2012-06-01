@@ -14,19 +14,6 @@
       return he;
     };
 
-    HalfEdge.createLoop = function(count) {
-      var he, head, i, next, _i;
-      head = HalfEdge.create();
-      he = head;
-      for (i = _i = 1; 1 <= count ? _i < count : _i > count; i = 1 <= count ? ++_i : --_i) {
-        next = HalfEdge.create();
-        he.setNext(next);
-        he = next;
-      }
-      he.setNext(head);
-      return head;
-    };
-
     HalfEdge.next_id = 1;
 
     function HalfEdge() {
@@ -77,17 +64,6 @@
       }
       this.mate = he;
       return he.mate = this;
-    };
-
-    HalfEdge.prototype.getLoopEdges = function() {
-      var edges, he;
-      edges = [this];
-      he = this.next;
-      while (he !== this) {
-        edges.push(he);
-        he = he.next;
-      }
-      return edges;
     };
 
     HalfEdge.prototype.setCurve = function(c) {

@@ -33,30 +33,30 @@
     };
 
     GridCutter.prototype.create_pieces = function() {
-      var he, p, pcs, x, y, _i, _j, _k, _l, _ref, _ref1, _ref2, _ref3;
+      var lp, p, pcs, x, y, _i, _j, _k, _l, _ref, _ref1, _ref2, _ref3;
       pcs = [];
       for (y = _i = 0, _ref = this.ny; 0 <= _ref ? _i < _ref : _i > _ref; y = 0 <= _ref ? ++_i : --_i) {
         pcs.push([]);
         for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
           p = new Piece();
-          he = HalfEdge.createLoop(4);
-          p.setEdge(he);
+          lp = Loop.create(4);
+          p.addLoop(lp);
           pcs[y].push(p);
         }
       }
       for (y = _k = 0, _ref2 = this.ny; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; y = 0 <= _ref2 ? ++_k : --_k) {
         for (x = _l = 0, _ref3 = this.nx; 0 <= _ref3 ? _l < _ref3 : _l > _ref3; x = 0 <= _ref3 ? ++_l : --_l) {
           if (x < this.nx - 1) {
-            pcs[y][x].edge.next.next.setMate(pcs[y][x + 1].edge);
+            pcs[y][x].loops[0].edge.next.next.setMate(pcs[y][x + 1].loops[0].edge);
           }
           if (y > 0) {
-            pcs[y][x].edge.next.next.next.setMate(pcs[y - 1][x].edge.next);
+            pcs[y][x].loops[0].edge.next.next.next.setMate(pcs[y - 1][x].loops[0].edge.next);
           }
           if (x > 0) {
-            pcs[y][x].edge.setMate(pcs[y][x - 1].edge.next.next);
+            pcs[y][x].loops[0].edge.setMate(pcs[y][x - 1].loops[0].edge.next.next);
           }
           if (y < this.ny - 1) {
-            pcs[y][x].edge.next.setMate(pcs[y + 1][x].edge.next.next.next);
+            pcs[y][x].loops[0].edge.next.setMate(pcs[y + 1][x].loops[0].edge.next.next.next);
           }
         }
       }
@@ -78,50 +78,36 @@
           }
           pos = new Point(x * w, y * h).add(vec);
           if (x === 0 && y === 0) {
-            pcs[y][x].edge.setPoint(pos);
+            pcs[y][x].loops[0].edge.setPoint(pos);
           } else if (x === 0) {
-            pcs[y - 1][x].edge.next.setPoint(pos);
+            pcs[y - 1][x].loops[0].edge.next.setPoint(pos);
           } else if (y === 0) {
-            pcs[y][x - 1].edge.next.next.next.setPoint(pos);
+            pcs[y][x - 1].loops[0].edge.next.next.next.setPoint(pos);
           } else {
-            pcs[y - 1][x - 1].edge.next.next.setPoint(pos);
+            pcs[y - 1][x - 1].loops[0].edge.next.next.setPoint(pos);
           }
         }
       }
     };
 
     GridCutter.prototype.create_curves = function(pcs) {
-      var he, p, parity, x, y, _i, _ref, _results;
+      var he, p, parity, x, y, _i, _j, _k, _len, _ref, _ref1, _ref2;
       parity = 1;
-      _results = [];
       for (y = _i = 0, _ref = this.ny; 0 <= _ref ? _i < _ref : _i > _ref; y = 0 <= _ref ? ++_i : --_i) {
         parity *= -1;
-        _results.push((function() {
-          var _j, _ref1, _results1;
-          _results1 = [];
-          for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
+        for (x = _j = 0, _ref1 = this.nx; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; x = 0 <= _ref1 ? ++_j : --_j) {
+          parity *= -1;
+          _ref2 = pcs[y][x].loops[0].getEdges();
+          for (_k = 0, _len = _ref2.length; _k < _len; _k++) {
+            he = _ref2[_k];
             parity *= -1;
-            _results1.push((function() {
-              var _k, _len, _ref2, _results2;
-              _ref2 = pcs[y][x].edge.getLoopEdges();
-              _results2 = [];
-              for (_k = 0, _len = _ref2.length; _k < _len; _k++) {
-                he = _ref2[_k];
-                parity *= -1;
-                p = Math.random() < this.irregularity ? parity : -parity;
-                if (he.curve == null) {
-                  _results2.push(he.setCurve(this.create_curve(he, p)));
-                } else {
-                  _results2.push(void 0);
-                }
-              }
-              return _results2;
-            }).call(this));
+            p = Math.random() < this.irregularity ? parity : -parity;
+            if (he.curve == null) {
+              he.setCurve(this.create_curve(he, p));
+            }
           }
-          return _results1;
-        }).call(this));
+        }
       }
-      return _results;
     };
 
     return GridCutter;

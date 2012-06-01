@@ -26,20 +26,20 @@ class GridCutter extends Cutter
       pcs.push []
       for x in [0...@nx]
         p = new Piece()
-        he = HalfEdge.createLoop(4)
-        p.setEdge(he)
+        lp = Loop.create(4)
+        p.addLoop(lp)
         pcs[y].push p
 
     for y in [0...@ny]
       for x in [0...@nx]
         if x < @nx - 1
-          pcs[y][x].edge.next.next.setMate(pcs[y][x + 1].edge)
+          pcs[y][x].loops[0].edge.next.next.setMate(pcs[y][x + 1].loops[0].edge)
         if y > 0
-          pcs[y][x].edge.next.next.next.setMate(pcs[y - 1][x].edge.next)
+          pcs[y][x].loops[0].edge.next.next.next.setMate(pcs[y - 1][x].loops[0].edge.next)
         if x > 0
-          pcs[y][x].edge.setMate(pcs[y][x - 1].edge.next.next)
+          pcs[y][x].loops[0].edge.setMate(pcs[y][x - 1].loops[0].edge.next.next)
         if y < @ny - 1
-          pcs[y][x].edge.next.setMate(pcs[y + 1][x].edge.next.next.next)
+          pcs[y][x].loops[0].edge.next.setMate(pcs[y + 1][x].loops[0].edge.next.next.next)
     pcs
 
   create_points: (pcs) ->
@@ -53,13 +53,13 @@ class GridCutter extends Cutter
         pos = new Point(x * w, y * h).add(vec)
 
         if x == 0 and y == 0
-          pcs[y][x].edge.setPoint(pos)
+          pcs[y][x].loops[0].edge.setPoint(pos)
         else if x == 0
-          pcs[y - 1][x].edge.next.setPoint(pos)
+          pcs[y - 1][x].loops[0].edge.next.setPoint(pos)
         else if y == 0
-          pcs[y][x - 1].edge.next.next.next.setPoint(pos)
+          pcs[y][x - 1].loops[0].edge.next.next.next.setPoint(pos)
         else
-          pcs[y - 1][x - 1].edge.next.next.setPoint(pos)
+          pcs[y - 1][x - 1].loops[0].edge.next.next.setPoint(pos)
     return
 
   create_curves: (pcs) ->
@@ -68,7 +68,7 @@ class GridCutter extends Cutter
       parity *= -1
       for x in [0...@nx]
         parity *= -1
-        for he in pcs[y][x].edge.getLoopEdges()
+        for he in pcs[y][x].loops[0].getEdges()
           parity *= -1
           p = if Math.random() < @irregularity
             parity
@@ -76,6 +76,7 @@ class GridCutter extends Cutter
             -parity
           unless he.curve?
             he.setCurve @create_curve(he, p)
+    return
 
 
 @GridCutter = GridCutter

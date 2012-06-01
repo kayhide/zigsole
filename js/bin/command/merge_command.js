@@ -14,24 +14,11 @@
     }
 
     MergeCommand.prototype.execute = function() {
-      var edges, he, _i, _j, _len, _len1;
-      edges = this.piece.edge.getLoopEdges();
-      for (_i = 0, _len = edges.length; _i < _len; _i++) {
-        he = edges[_i];
-        if (he.mate.piece === this.mergee) {
-          he.weld();
-        }
-      }
-      if (this.piece.edge.isSolitary()) {
-        this.piece.edge = null;
-        for (_j = 0, _len1 = edges.length; _j < _len1; _j++) {
-          he = edges[_j];
-          if (!(!he.isSolitary())) {
-            continue;
-          }
-          this.piece.setEdge(he);
-          break;
-        }
+      var lp, _i, _len, _ref;
+      _ref = this.mergee.loops;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        lp = _ref[_i];
+        this.piece.addLoop(lp);
       }
       this.mergee.shape.parent.removeChild(this.mergee.shape);
       return this.piece.draw();

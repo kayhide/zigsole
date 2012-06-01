@@ -10,7 +10,7 @@ class StandardGridCutter extends GridCutter
 
     points = []
     points.push pt0
-    if he.mate.piece?
+    if he.mate.loop?
       points.push pt0.add(v1.scale(0.2))
       points.push pt0.add(v1)
       points.push pt0.add(v1).add(v2.scale(0.5))

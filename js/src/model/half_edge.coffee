@@ -7,16 +7,6 @@ class HalfEdge
     he.mate.next = he
     he
 
-  @createLoop: (count) ->
-    head = HalfEdge.create()
-    he = head
-    for i in [1...count]
-      next = HalfEdge.create()
-      he.setNext(next)
-      he = next
-    he.setNext(head)
-    head
-
   @next_id = 1
   
   constructor: ->
@@ -54,14 +44,6 @@ class HalfEdge
       he.mate.prev().next = @mate.next
     @mate = he
     he.mate = this
-
-  getLoopEdges: ->
-    edges = [this]
-    he = this.next
-    while he != this
-      edges.push(he)
-      he = he.next
-    edges
 
   setCurve: (c) ->
     @curve = c
