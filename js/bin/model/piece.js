@@ -5,11 +5,12 @@
   Piece = (function() {
 
     function Piece() {
+      this.puzzle = null;
       this.edge = null;
       this.shape = null;
-      this.draws_stroke = false;
+      this.draws_stroke = true;
       this.draws_control_line = false;
-      this.draws_boundary = false;
+      this.draws_boundary = true;
       this.draws_center = true;
     }
 
@@ -81,29 +82,32 @@
       return new Point(boundary[0] + boundary[2] / 2, boundary[1] + boundary[3] / 2);
     };
 
-    Piece.prototype.draw = function(image) {
+    Piece.prototype.draw = function() {
       var boundary, center, g, loop_curve, _ref;
+      this.shape.uncache();
+      this.boundary = null;
       g = this.shape.graphics;
-      g.beginBitmapFill(image);
+      g.clear();
+      g.beginBitmapFill(this.puzzle.image);
       if (this.draws_stroke) {
         g.beginStroke(2);
       }
       loop_curve = this.getLoopCurve();
       this.drawCurve(loop_curve);
       g.endFill().endStroke();
-      if (this.draws_control_line) {
-        g.beginStroke(1);
-        this.drawPolyline(loop_curve);
-      }
       boundary = this.getBoundary(loop_curve);
       if (this.draws_boundary) {
         (_ref = g.beginStroke(1)).rect.apply(_ref, boundary);
       }
-      center = this.getCenter();
+      if (this.draws_control_line) {
+        g.beginStroke(1);
+        this.drawPolyline(loop_curve);
+      }
       if (this.draws_center) {
+        center = this.getCenter();
         g.beginStroke(2).drawCircle(center.x, center.y, 4);
       }
-      return this.shape.cache(boundary[0], boundary[1], boundary[2] + 1, boundary[3] + 1);
+      return this.shape.cache(boundary[0] - 1, boundary[1] - 1, boundary[2] + 2, boundary[3] + 2);
     };
 
     Piece.prototype.drawCurve = function(points) {

@@ -29,10 +29,10 @@ class HalfEdge
     ++HalfEdge.next_id
 
   prev: ->
-    he = this
-    while he.mate.next.mate.next != this
-      he = he.mate.next
-    he.mate.next.mate
+    he = @mate
+    while he.next != this
+      he = he.next.mate
+    he
     
   setPoint: (pt) ->
     @point = pt
@@ -66,5 +66,15 @@ class HalfEdge
   setCurve: (c) ->
     @curve = c
     @mate.curve = (c[i] for i in [(c.length - 1)..0])
+
+  isSolitary: ->
+    @next == @mate and @next.mate == this
+
+  weld: ->
+    @prev().next = @mate.next
+    @mate.prev().next = @next
+    @next = @mate
+    @mate.next = this
+
 
 @HalfEdge = HalfEdge

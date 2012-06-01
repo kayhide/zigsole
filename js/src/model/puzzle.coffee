@@ -24,13 +24,18 @@ class Puzzle
     @pieces = @cutter.cut(@image)
     for p, i in @pieces
       p.id = i
+      p.puzzle = this
       p.shape = new Shape()
       p.shape.piece = p
-      p.draw(image)
+      p.draw()
       @container.addChild(p.shape)
       p.shape.onPress = @onPiecePressed
 
     @stage.addChild(@container)
+    @stage.update()
+    
+    Command.onCommit = (cmd) =>
+      @stage.update()
   
   update: ->
     @stage.update()
@@ -72,14 +77,12 @@ class Puzzle
         vec = pt.subtract(last_point)
         new RotateCommand(e.target.piece, center, vec.x).commit()
         last_point = pt
-        @stage.update()
     else
       e.onMouseMove = (ev) =>
         pt = @container.globalToLocal(ev.stageX, ev.stageY)
         vec = pt.subtract(last_point)
         new TranslateCommand(e.target.piece, vec).commit()
         last_point = pt
-        @stage.update()
 
 
 @Puzzle = Puzzle

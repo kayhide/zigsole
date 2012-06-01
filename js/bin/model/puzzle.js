@@ -38,13 +38,18 @@
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         p = _ref[i];
         p.id = i;
+        p.puzzle = this;
         p.shape = new Shape();
         p.shape.piece = p;
-        p.draw(image);
+        p.draw();
         this.container.addChild(p.shape);
         p.shape.onPress = this.onPiecePressed;
       }
-      return this.stage.addChild(this.container);
+      this.stage.addChild(this.container);
+      this.stage.update();
+      return Command.onCommit = function(cmd) {
+        return _this.stage.update();
+      };
     };
 
     Puzzle.prototype.update = function() {
@@ -91,8 +96,7 @@
           pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
           vec = pt.subtract(last_point);
           new RotateCommand(e.target.piece, center, vec.x).commit();
-          last_point = pt;
-          return _this.stage.update();
+          return last_point = pt;
         };
       } else {
         return e.onMouseMove = function(ev) {
@@ -100,8 +104,7 @@
           pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
           vec = pt.subtract(last_point);
           new TranslateCommand(e.target.piece, vec).commit();
-          last_point = pt;
-          return _this.stage.update();
+          return last_point = pt;
         };
       }
     };

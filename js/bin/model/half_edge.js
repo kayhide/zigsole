@@ -41,11 +41,11 @@
 
     HalfEdge.prototype.prev = function() {
       var he;
-      he = this;
-      while (he.mate.next.mate.next !== this) {
-        he = he.mate.next;
+      he = this.mate;
+      while (he.next !== this) {
+        he = he.next.mate;
       }
-      return he.mate.next.mate;
+      return he;
     };
 
     HalfEdge.prototype.setPoint = function(pt) {
@@ -101,6 +101,17 @@
         }
         return _results;
       })();
+    };
+
+    HalfEdge.prototype.isSolitary = function() {
+      return this.next === this.mate && this.next.mate === this;
+    };
+
+    HalfEdge.prototype.weld = function() {
+      this.prev().next = this.mate.next;
+      this.mate.prev().next = this.next;
+      this.next = this.mate;
+      return this.mate.next = this;
     };
 
     return HalfEdge;

@@ -1,10 +1,11 @@
 class Piece
   constructor: ->
+    @puzzle = null
     @edge = null
     @shape = null
-    @draws_stroke = false
+    @draws_stroke = true
     @draws_control_line = false
-    @draws_boundary = false
+    @draws_boundary = true
     @draws_center = true
 
   setEdge: (@edge) ->
@@ -32,21 +33,26 @@ class Piece
     boundary = @getBoundary()
     new Point(boundary[0] + boundary[2] / 2, boundary[1] + boundary[3] / 2)
     
-  draw: (image) ->
+  draw: ->
+    @shape.uncache()
+    @boundary = null
     g = @shape.graphics
-    g.beginBitmapFill(image)
+    g.clear()
+    g.beginBitmapFill(@puzzle.image)
     g.beginStroke(2) if @draws_stroke
     loop_curve = @getLoopCurve()
     @drawCurve(loop_curve)
     g.endFill().endStroke()
+    boundary = @getBoundary(loop_curve)
+    if @draws_boundary
+      g.beginStroke(1).rect(boundary...)
     if @draws_control_line
       g.beginStroke(1)
       @drawPolyline(loop_curve)
-    boundary = @getBoundary(loop_curve)
-    g.beginStroke(1).rect(boundary...) if @draws_boundary
-    center = @getCenter()
-    g.beginStroke(2).drawCircle(center.x, center.y, 4) if @draws_center
-    @shape.cache(boundary[0], boundary[1], boundary[2] + 1, boundary[3] + 1)
+    if @draws_center
+      center = @getCenter()
+      g.beginStroke(2).drawCircle(center.x, center.y, 4)
+    @shape.cache(boundary[0] - 1, boundary[1] - 1, boundary[2] + 2, boundary[3] + 2)
   
   drawCurve: (points) ->
     g = @shape.graphics
