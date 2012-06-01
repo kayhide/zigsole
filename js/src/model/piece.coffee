@@ -5,6 +5,7 @@ class Piece
     @draws_stroke = false
     @draws_control_line = false
     @draws_boundary = false
+    @draws_center = true
 
   setEdge: (@edge) ->
     for he in @edge.getLoopEdges()
@@ -12,12 +13,11 @@ class Piece
 
   getLoopCurve: ->
     curves = (e.curve for e in @edge.getLoopEdges())
-    loop_curve = @connectCurves(curves)
+    @connectCurves(curves)
 
-  getBoundary: (points) ->
-    if points.length == 0
-      null
-    else
+  getBoundary: (points = null) ->
+    unless @boundary?
+      points = @getLoopCurve() unless points?
       pt0 = points[0].clone()
       pt1 = points[0].clone()
       for pt in points[1..] when pt?
@@ -25,7 +25,12 @@ class Piece
         pt0.y = pt.y if pt.y < pt0.y
         pt1.x = pt.x if pt.x > pt1.x
         pt1.y = pt.y if pt.y > pt1.y
-      [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y]
+      @boundary = [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y]
+    @boundary
+
+  getCenter: ->
+    boundary = @getBoundary()
+    new Point(boundary[0] + boundary[2] / 2, boundary[1] + boundary[3] / 2)
     
   draw: (image) ->
     g = @shape.graphics
@@ -37,9 +42,11 @@ class Piece
     if @draws_control_line
       g.beginStroke(1)
       @drawPolyline(loop_curve)
-    @boundary = @getBoundary(loop_curve)
-    g.beginStroke(1).rect(@boundary...) if @draws_boundary
-    @shape.cache(@boundary[0], @boundary[1], @boundary[2] + 1, @boundary[3] + 1)
+    boundary = @getBoundary(loop_curve)
+    g.beginStroke(1).rect(boundary...) if @draws_boundary
+    center = @getCenter()
+    g.beginStroke(2).drawCircle(center.x, center.y, 4) if @draws_center
+    @shape.cache(boundary[0], boundary[1], boundary[2] + 1, boundary[3] + 1)
   
   drawCurve: (points) ->
     g = @shape.graphics

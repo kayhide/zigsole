@@ -10,6 +10,7 @@
       this.draws_stroke = false;
       this.draws_control_line = false;
       this.draws_boundary = false;
+      this.draws_center = true;
     }
 
     Piece.prototype.setEdge = function(edge) {
@@ -25,7 +26,7 @@
     };
 
     Piece.prototype.getLoopCurve = function() {
-      var curves, e, loop_curve;
+      var curves, e;
       curves = (function() {
         var _i, _len, _ref, _results;
         _ref = this.edge.getLoopEdges();
@@ -36,14 +37,18 @@
         }
         return _results;
       }).call(this);
-      return loop_curve = this.connectCurves(curves);
+      return this.connectCurves(curves);
     };
 
     Piece.prototype.getBoundary = function(points) {
       var pt, pt0, pt1, _i, _len, _ref;
-      if (points.length === 0) {
-        return null;
-      } else {
+      if (points == null) {
+        points = null;
+      }
+      if (this.boundary == null) {
+        if (points == null) {
+          points = this.getLoopCurve();
+        }
         pt0 = points[0].clone();
         pt1 = points[0].clone();
         _ref = points.slice(1);
@@ -65,12 +70,19 @@
             pt1.y = pt.y;
           }
         }
-        return [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y];
+        this.boundary = [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y];
       }
+      return this.boundary;
+    };
+
+    Piece.prototype.getCenter = function() {
+      var boundary;
+      boundary = this.getBoundary();
+      return new Point(boundary[0] + boundary[2] / 2, boundary[1] + boundary[3] / 2);
     };
 
     Piece.prototype.draw = function(image) {
-      var g, loop_curve, _ref;
+      var boundary, center, g, loop_curve, _ref;
       g = this.shape.graphics;
       g.beginBitmapFill(image);
       if (this.draws_stroke) {
@@ -83,11 +95,15 @@
         g.beginStroke(1);
         this.drawPolyline(loop_curve);
       }
-      this.boundary = this.getBoundary(loop_curve);
+      boundary = this.getBoundary(loop_curve);
       if (this.draws_boundary) {
-        (_ref = g.beginStroke(1)).rect.apply(_ref, this.boundary);
+        (_ref = g.beginStroke(1)).rect.apply(_ref, boundary);
       }
-      return this.shape.cache(this.boundary[0], this.boundary[1], this.boundary[2] + 1, this.boundary[3] + 1);
+      center = this.getCenter();
+      if (this.draws_center) {
+        g.beginStroke(2).drawCircle(center.x, center.y, 4);
+      }
+      return this.shape.cache(boundary[0], boundary[1], boundary[2] + 1, boundary[3] + 1);
     };
 
     Piece.prototype.drawCurve = function(points) {
