@@ -22,7 +22,7 @@
       puzzle.update();
       return $("#info").text("" + cutter.count + " ( " + cutter.nx + " x " + cutter.ny + " )");
     };
-    image.src = "/easel/test/AA145_L.jpg";
+    image.src = "asset/AA145_L.jpg";
     window.puzzle = puzzle;
     return window.onresize = function() {
       field.width = window.innerWidth;

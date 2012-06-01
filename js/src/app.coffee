@@ -20,7 +20,7 @@ $( ->
     puzzle.update()
     $("#info").text("#{cutter.count} ( #{cutter.nx} x #{cutter.ny} )")
     
-  image.src = "/easel/test/AA145_L.jpg"
+  image.src = "asset/AA145_L.jpg"
   
 
   window.puzzle = puzzle
