@@ -20,7 +20,10 @@ $( ->
     $("#info").text("#{cutter.count} ( #{cutter.nx} x #{cutter.ny} )")
     
   image.src = "asset/AA145_L.jpg"
-  
+
+  puzzle.sounds = {
+    merge: document.getElementById("se-merge")
+  }
 
   window.puzzle = puzzle
   

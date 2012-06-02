@@ -11,6 +11,7 @@
       this.onStagePressed = __bind(this.onStagePressed, this);
       this.stage = new Stage(canvas);
       this.image = null;
+      this.sounds = null;
       this.cutter = null;
       this.pieces = [];
       this.rotation_tolerance = 10;
@@ -54,12 +55,24 @@
         _this.stage.update();
       };
       return Command.onCommit = function(cmds) {
-        var cmd, _j, _len1;
+        var cmd, _j, _k, _len1, _len2, _ref1, _ref2;
         for (_j = 0, _len1 = cmds.length; _j < _len1; _j++) {
           cmd = cmds[_j];
           if (cmd.isTransformCommand()) {
             _this.tryMerge(cmd.piece);
           }
+        }
+        for (_k = 0, _len2 = cmds.length; _k < _len2; _k++) {
+          cmd = cmds[_k];
+          if (!(cmd instanceof MergeCommand)) {
+            continue;
+          }
+          if ((_ref1 = _this.sounds) != null) {
+            if ((_ref2 = _ref1.merge) != null) {
+              _ref2.play();
+            }
+          }
+          break;
         }
       };
     };
@@ -82,6 +95,10 @@
       this.container.scaleY = this.container.scaleX;
       this.container.x = x - (x - this.container.x) * scale;
       this.container.y = y - (y - this.container.y) * scale;
+      return this.stage.update();
+    };
+
+    Puzzle.prototype.update = function() {
       return this.stage.update();
     };
 

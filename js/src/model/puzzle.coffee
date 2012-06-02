@@ -2,6 +2,7 @@ class Puzzle
   constructor: (canvas) ->
     @stage = new Stage(canvas)
     @image = null
+    @sounds = null
     @cutter = null
     @pieces = []
     @rotation_tolerance = 10
@@ -44,6 +45,9 @@ class Puzzle
     Command.onCommit = (cmds) =>
       for cmd in cmds when cmd.isTransformCommand()
         @tryMerge(cmd.piece)
+      for cmd in cmds when cmd instanceof MergeCommand
+        @sounds?.merge?.play()
+        break
       return
 
   tryMerge: (piece) ->
@@ -58,7 +62,9 @@ class Puzzle
     @container.x = x - (x - @container.x) * scale
     @container.y = y - (y - @container.y) * scale
     @stage.update()
-  
+
+  update: ->
+    @stage.update()
   
   onStagePressed: (e) =>
     window.console.log("stage pressed: ( #{e.stageX}, #{e.stageY} )")
