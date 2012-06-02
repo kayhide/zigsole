@@ -20,6 +20,7 @@
         lp = _ref[_i];
         this.piece.addLoop(lp);
       }
+      this.mergee.merger = this.piece;
       this.mergee.shape.parent.removeChild(this.mergee.shape);
       return this.piece.draw();
     };

@@ -49,6 +49,9 @@ class HalfEdge
     @curve = c
     @mate.curve = (c[i] for i in [(c.length - 1)..0])
 
+  getCenter: ->
+    @point.add(@next.point).scale(0.5)
+  
   isSolitary: ->
     @next == @mate and @next.mate == this
 

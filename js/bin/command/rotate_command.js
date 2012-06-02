@@ -26,6 +26,19 @@
       return this.piece.shape.y -= vec.y;
     };
 
+    RotateCommand.prototype.squash = function(cmd) {
+      if (cmd instanceof RotateCommand && cmd.piece === this.piece && cmd.center === this.center) {
+        this.degree += cmd.degree;
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    RotateCommand.prototype.isTransformCommand = function() {
+      return true;
+    };
+
     return RotateCommand;
 
   })(Command);

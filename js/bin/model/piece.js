@@ -8,6 +8,7 @@
       this.puzzle = null;
       this.loops = [];
       this.shape = null;
+      this.merger = null;
       this.draws_stroke = false;
       this.draws_control_line = false;
       this.draws_boundary = false;
@@ -15,7 +16,11 @@
     }
 
     Piece.prototype.addLoop = function(lp) {
-      return this.loops.push(lp);
+      this.loops.push(lp);
+      if (lp.piece != null) {
+        lp.piece.removeLoop(lp);
+      }
+      return lp.piece = this;
     };
 
     Piece.prototype.removeLoop = function(lp) {
@@ -32,6 +37,96 @@
         }
         return _results;
       }).call(this);
+    };
+
+    Piece.prototype.getEntity = function() {
+      if (this.merger != null) {
+        return this.getMerger();
+      } else {
+        return this;
+      }
+    };
+
+    Piece.prototype.getMerger = function() {
+      var merger;
+      merger = this.merger;
+      while ((merger != null ? merger.merger : void 0) != null) {
+        merger = merger.merger;
+      }
+      return merger;
+    };
+
+    Piece.prototype.isMerged = function() {
+      return this.merger != null;
+    };
+
+    Piece.prototype.isWithinTolerance = function(target) {
+      var he, pt, pt0, pt1, _i, _len, _ref, _ref1;
+      if (Math.abs(this.getDegreeTo(target)) < this.puzzle.rotation_tolerance) {
+        _ref = this.getEdges();
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          he = _ref[_i];
+          if (!(((_ref1 = he.mate.loop) != null ? _ref1.piece : void 0) === target)) {
+            continue;
+          }
+          pt = he.getCenter();
+          pt0 = this.shape.localToParent(pt.x, pt.y);
+          pt1 = target.shape.localToParent(pt.x, pt.y);
+          if (pt0.distanceTo(pt1) < this.puzzle.translation_tolerance) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    Piece.prototype.getDegreeTo = function(target) {
+      var deg;
+      deg = (target.shape.rotation - this.shape.rotation) % 360;
+      if (deg > 180) {
+        return deg - 360;
+      } else if (deg <= -180) {
+        return deg + 360;
+      } else {
+        return deg;
+      }
+    };
+
+    Piece.prototype.getEdges = function() {
+      var edges, he, lp, _i, _j, _len, _len1, _ref, _ref1;
+      edges = [];
+      _ref = this.loops;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        lp = _ref[_i];
+        _ref1 = lp.getEdges();
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          he = _ref1[_j];
+          edges.push(he);
+        }
+      }
+      return edges;
+    };
+
+    Piece.prototype.getAdjacentPieces = function() {
+      var he, key, p, pieces, value, _i, _len, _ref, _results;
+      pieces = {};
+      _ref = this.getEdges();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        he = _ref[_i];
+        if (!(he.mate.loop != null)) {
+          continue;
+        }
+        p = he.mate.loop.piece.getEntity();
+        pieces[p.id] = p;
+      }
+      _results = [];
+      for (key in pieces) {
+        value = pieces[key];
+        if (value !== this) {
+          _results.push(value);
+        }
+      }
+      return _results;
     };
 
     Piece.prototype.getBoundary = function() {

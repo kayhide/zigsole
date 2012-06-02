@@ -18,6 +18,19 @@
       return this.piece.shape.y += this.vector.y;
     };
 
+    TranslateCommand.prototype.squash = function(cmd) {
+      if (cmd instanceof TranslateCommand && cmd.piece === this.piece) {
+        this.vector = this.vector.add(cmd.vector);
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    TranslateCommand.prototype.isTransformCommand = function() {
+      return true;
+    };
+
     return TranslateCommand;
 
   })(Command);

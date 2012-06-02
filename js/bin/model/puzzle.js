@@ -13,6 +13,8 @@
       this.image = null;
       this.cutter = null;
       this.pieces = [];
+      this.rotation_tolerance = 10;
+      this.translation_tolerance = 0;
     }
 
     Puzzle.prototype.initizlize = function(image, cutter) {
@@ -34,6 +36,7 @@
       this.stage.addChild(this.background);
       this.container = new Container();
       this.pieces = this.cutter.cut(this.image);
+      this.translation_tolerance = this.cutter.linear_measure / 16;
       _ref = this.pieces;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         p = _ref[i];
@@ -47,13 +50,31 @@
       }
       this.stage.addChild(this.container);
       this.stage.update();
-      return Command.onCommit = function(cmd) {
-        return _this.stage.update();
+      Command.onPost = function(cmd) {
+        _this.stage.update();
+      };
+      return Command.onCommit = function(cmds) {
+        var cmd, _j, _len1;
+        for (_j = 0, _len1 = cmds.length; _j < _len1; _j++) {
+          cmd = cmds[_j];
+          if (cmd.isTransformCommand()) {
+            _this.tryMerge(cmd.piece);
+          }
+        }
       };
     };
 
-    Puzzle.prototype.update = function() {
-      return this.stage.update();
+    Puzzle.prototype.tryMerge = function(piece) {
+      var p, _i, _len, _ref;
+      _ref = piece.getAdjacentPieces();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        p = _ref[_i];
+        if (!(p.isWithinTolerance(piece))) {
+          continue;
+        }
+        new MergeCommand(p, piece).commit();
+        break;
+      }
     };
 
     Puzzle.prototype.zoom = function(x, y, scale) {
@@ -67,7 +88,7 @@
     Puzzle.prototype.onStagePressed = function(e) {
       var last_point,
         _this = this;
-      window.console.log('stage pressed: ' + e.stageX + ', ' + e.stageY);
+      window.console.log("stage pressed: ( " + e.stageX + ", " + e.stageY + " )");
       last_point = new Point(e.stageX, e.stageY);
       return e.onMouseMove = function(ev) {
         var pt;
@@ -82,7 +103,7 @@
     Puzzle.prototype.onPiecePressed = function(e) {
       var center, last_point, local_point, piece,
         _this = this;
-      window.console.log("shape[" + e.target.piece.id + "] pressed: " + e.stageX + ", " + e.stageY);
+      window.console.log("piece[" + e.target.piece.id + "] pressed: ( " + e.stageX + ", " + e.stageY + " )");
       this.container.addChild(e.target);
       this.stage.update();
       piece = e.target.piece;
@@ -90,21 +111,27 @@
       local_point = e.target.globalToLocal(e.stageX, e.stageY);
       if (local_point.distanceTo(piece.getCenter()) > 0.4 * this.cutter.linear_measure) {
         center = piece.getCenter();
-        center = e.target.localToLocal(center.x, center.y, this.container);
-        return e.onMouseMove = function(ev) {
+        center = e.target.localToParent(center.x, center.y);
+        e.onMouseMove = function(ev) {
           var pt, vec;
           pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
           vec = pt.subtract(last_point);
-          new RotateCommand(e.target.piece, center, vec.x).commit();
+          new RotateCommand(e.target.piece, center, vec.x).post();
           return last_point = pt;
         };
+        return e.onMouseUp = function(ev) {
+          return Command.commit();
+        };
       } else {
-        return e.onMouseMove = function(ev) {
+        e.onMouseMove = function(ev) {
           var pt, vec;
           pt = _this.container.globalToLocal(ev.stageX, ev.stageY);
           vec = pt.subtract(last_point);
-          new TranslateCommand(e.target.piece, vec).commit();
+          new TranslateCommand(e.target.piece, vec).post();
           return last_point = pt;
+        };
+        return e.onMouseUp = function(ev) {
+          return Command.commit();
         };
       }
     };

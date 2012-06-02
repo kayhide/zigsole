@@ -23,4 +23,8 @@
     return Math.sqrt(Math.pow(pt.x - this.x, 2) + Math.pow(pt.y - this.y, 2));
   };
 
+  DisplayObject.prototype.localToParent = function(x, y) {
+    return this.localToLocal(x, y, this.parent);
+  };
+
 }).call(this);

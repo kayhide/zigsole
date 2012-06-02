@@ -3,17 +3,68 @@ class Piece
     @puzzle = null
     @loops = []
     @shape = null
+    @merger = null
     @draws_stroke = false
     @draws_control_line = false
     @draws_boundary = false
     @draws_center = false
 
   addLoop: (lp) ->
-    @loops.push lp
+    @loops.push(lp)
+    lp.piece.removeLoop(lp) if lp.piece?
+    lp.piece = this
 
   removeLoop: (lp) ->
     @loops = (l for l in @loops when l != lp)
- 
+
+  getEntity: ->
+    if @merger?
+      @getMerger()
+    else
+      this
+
+  getMerger: ->
+    merger = @merger
+    while merger?.merger?
+      merger = merger.merger
+    merger
+
+  isMerged: ->
+    @merger?
+    
+  isWithinTolerance: (target) ->
+    if Math.abs(@getDegreeTo(target)) < @puzzle.rotation_tolerance
+      for he in @getEdges() when he.mate.loop?.piece == target
+        pt = he.getCenter()
+        pt0 = @shape.localToParent(pt.x, pt.y)
+        pt1 = target.shape.localToParent(pt.x, pt.y)
+        if pt0.distanceTo(pt1) < @puzzle.translation_tolerance
+          return true
+    return false
+
+  getDegreeTo: (target) ->
+    deg = (target.shape.rotation - @shape.rotation) % 360
+    if deg > 180
+      deg - 360
+    else if deg <= -180
+      deg + 360
+    else
+      deg
+
+  getEdges: ->
+    edges = []
+    for lp in @loops
+      for he in lp.getEdges()
+        edges.push(he)
+    edges
+
+  getAdjacentPieces: ->
+    pieces = {}
+    for he in @getEdges() when he.mate.loop?
+      p = he.mate.loop.piece.getEntity()
+      pieces[p.id] = p
+    (value for key, value of pieces when value != this)
+
   getBoundary: ->
     unless @boundary?
       points = []

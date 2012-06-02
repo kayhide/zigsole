@@ -11,6 +11,17 @@ class RotateCommand extends Command
     @piece.shape.x -= vec.x
     @piece.shape.y -= vec.y
 
+  squash: (cmd) ->
+    if (cmd instanceof RotateCommand and
+        cmd.piece == @piece and
+        cmd.center == @center)
+      @degree += cmd.degree
+      true
+    else
+      false
+
+  isTransformCommand: ->
+    true
 
 
 @RotateCommand = RotateCommand

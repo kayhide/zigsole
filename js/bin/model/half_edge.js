@@ -79,6 +79,10 @@
       })();
     };
 
+    HalfEdge.prototype.getCenter = function() {
+      return this.point.add(this.next.point).scale(0.5);
+    };
+
     HalfEdge.prototype.isSolitary = function() {
       return this.next === this.mate && this.next.mate === this;
     };

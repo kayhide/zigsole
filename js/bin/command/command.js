@@ -4,20 +4,61 @@
 
   Command = (function() {
 
+    function Command() {}
+
     Command.onCommit = null;
+
+    Command.onPost = null;
 
     Command.commands = [];
 
-    function Command() {
-      Command.commands = [];
-    }
+    Command.current_commands = [];
+
+    Command.commit = function() {
+      var cmds;
+      cmds = this.squash();
+      this.commands.concat(cmds);
+      if (typeof this.onCommit === "function") {
+        this.onCommit(cmds);
+      }
+    };
+
+    Command.post = function(cmd) {
+      cmd.execute();
+      this.current_commands.push(cmd);
+      if (typeof this.onPost === "function") {
+        this.onPost(cmd);
+      }
+    };
+
+    Command.squash = function() {
+      var cmd, cmds, last;
+      cmds = [];
+      last = null;
+      while (cmd = this.current_commands.shift()) {
+        if (!(last != null ? last.squash(cmd) : void 0)) {
+          last = cmd;
+          cmds.push(cmd);
+        }
+      }
+      return cmds;
+    };
+
+    Command.prototype.post = function() {
+      return Command.post(this);
+    };
 
     Command.prototype.commit = function() {
-      this.execute();
-      Command.commands.push(this);
-      if (Command.onCommit != null) {
-        return Command.onCommit(this);
-      }
+      Command.post(this);
+      return Command.commit();
+    };
+
+    Command.prototype.squash = function(cmd) {
+      return false;
+    };
+
+    Command.prototype.isTransformCommand = function() {
+      return false;
     };
 
     return Command;
