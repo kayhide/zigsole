@@ -31,6 +31,11 @@
       return true;
     };
 
+    TranslateCommand.prototype.isValid = function() {
+      var _ref;
+      return (_ref = this.piece) != null ? _ref.isAlive() : void 0;
+    };
+
     return TranslateCommand;
 
   })(Command);

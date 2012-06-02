@@ -23,5 +23,8 @@ class RotateCommand extends Command
   isTransformCommand: ->
     true
 
+  isValid: ->
+    @piece?.isAlive() and @center?
+
 
 @RotateCommand = RotateCommand

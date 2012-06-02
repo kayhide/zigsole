@@ -39,6 +39,11 @@
       return true;
     };
 
+    RotateCommand.prototype.isValid = function() {
+      var _ref;
+      return ((_ref = this.piece) != null ? _ref.isAlive() : void 0) && (this.center != null);
+    };
+
     return RotateCommand;
 
   })(Command);

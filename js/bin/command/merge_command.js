@@ -15,6 +15,7 @@
 
     MergeCommand.prototype.execute = function() {
       var lp, _i, _len, _ref;
+      this.piece = this.piece.getEntity();
       _ref = this.mergee.loops;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         lp = _ref[_i];
@@ -23,6 +24,11 @@
       this.mergee.merger = this.piece;
       this.mergee.shape.parent.removeChild(this.mergee.shape);
       return this.piece.draw();
+    };
+
+    MergeCommand.prototype.isValid = function() {
+      var _ref;
+      return (_ref = this.mergee) != null ? _ref.isAlive() : void 0;
     };
 
     return MergeCommand;

@@ -29,8 +29,8 @@ class Piece
       merger = merger.merger
     merger
 
-  isMerged: ->
-    @merger?
+  isAlive: ->
+    !@merger?
     
   isWithinTolerance: (target) ->
     if Math.abs(@getDegreeTo(target)) < @puzzle.rotation_tolerance

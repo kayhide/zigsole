@@ -10,6 +10,8 @@
 
     Command.onPost = null;
 
+    Command.onReject = null;
+
     Command.commands = [];
 
     Command.current_commands = [];
@@ -21,14 +23,23 @@
       if (typeof this.onCommit === "function") {
         this.onCommit(cmds);
       }
+      return cmds;
     };
 
     Command.post = function(cmd) {
-      cmd.execute();
-      this.current_commands.push(cmd);
-      if (typeof this.onPost === "function") {
-        this.onPost(cmd);
+      if (cmd.isValid()) {
+        cmd.execute();
+        this.current_commands.push(cmd);
+        if (typeof this.onPost === "function") {
+          this.onPost(cmd);
+        }
+      } else {
+        cmd.rejected = true;
+        if (typeof this.onReject === "function") {
+          this.onReject(cmd);
+        }
       }
+      return cmd;
     };
 
     Command.squash = function() {
@@ -50,7 +61,8 @@
 
     Command.prototype.commit = function() {
       Command.post(this);
-      return Command.commit();
+      Command.commit();
+      return this;
     };
 
     Command.prototype.squash = function(cmd) {
@@ -59,6 +71,10 @@
 
     Command.prototype.isTransformCommand = function() {
       return false;
+    };
+
+    Command.prototype.isValid = function() {
+      return true;
     };
 
     return Command;

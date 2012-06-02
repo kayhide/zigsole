@@ -16,5 +16,8 @@ class TranslateCommand extends Command
   isTransformCommand: ->
     true
 
+  isValid: ->
+    @piece?.isAlive()
+
 
 @TranslateCommand = TranslateCommand

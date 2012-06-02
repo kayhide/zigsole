@@ -56,8 +56,8 @@
       return merger;
     };
 
-    Piece.prototype.isMerged = function() {
-      return this.merger != null;
+    Piece.prototype.isAlive = function() {
+      return !(this.merger != null);
     };
 
     Piece.prototype.isWithinTolerance = function(target) {

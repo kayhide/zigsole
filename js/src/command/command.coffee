@@ -1,6 +1,7 @@
 class Command
   @onCommit: null
   @onPost: null
+  @onReject: null
   @commands: []
   @current_commands: []
 
@@ -8,13 +9,17 @@ class Command
     cmds = @squash()
     @commands.concat(cmds)
     @onCommit?(cmds)
-    return
+    cmds
 
   @post: (cmd) ->
-    cmd.execute()
-    @current_commands.push(cmd)
-    @onPost?(cmd)
-    return
+    if cmd.isValid()
+      cmd.execute()
+      @current_commands.push(cmd)
+      @onPost?(cmd)
+    else
+      cmd.rejected = true
+      @onReject?(cmd)
+    cmd
     
   @squash: ->
     cmds = []
@@ -31,11 +36,15 @@ class Command
   commit: ->
     Command.post(this)
     Command.commit()
+    this
 
   squash: (cmd) ->
     false
 
   isTransformCommand: ->
     false
+
+  isValid: ->
+    true
 
 @Command = Command
