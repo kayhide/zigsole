@@ -106,7 +106,7 @@ class Piece
     if @draws_center
       center = @getCenter()
       g.beginStroke(2).drawCircle(center.x, center.y, 4)
-    @shape.cache(boundary[0] - 1, boundary[1] - 1, boundary[2] + 2, boundary[3] + 2)
+#    @shape.cache(boundary[0] - 1, boundary[1] - 1, boundary[2] + 2, boundary[3] + 2)
   
   drawCurve: (points) ->
     g = @shape.graphics

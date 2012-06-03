@@ -75,3 +75,8 @@ Array::getCornerPoints = ->
 DisplayObject::localToParent = (x, y) ->
   @localToLocal(x, y, @parent)
 
+DisplayObject::copyTransform = (src) ->
+  @x = src.x
+  @y = src.y
+  @scaleX = src.scaleX
+  @scaleY = src.scaleY

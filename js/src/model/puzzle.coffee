@@ -5,7 +5,7 @@ class Puzzle
     @sounds = null
     @cutter = null
     @pieces = []
-    @rotation_tolerance = 10
+    @rotation_tolerance = 24
     @translation_tolerance = 0
   
   initizlize: (@image, @cutter) ->
@@ -17,10 +17,16 @@ class Puzzle
     @stage.addChild(@background)
 
     @pieces = @cutter.cut(@image)
-    @translation_tolerance = @cutter.linear_measure / 16
+    @translation_tolerance = @cutter.linear_measure / 4
 
+    @wrapper = new Container()
+    @stage.addChild(@wrapper)
+    
     @container = new Container()
-    @stage.addChild(@container)
+    @wrapper.addChild(@container)
+
+    @activelayer = new Container()
+    @stage.addChild(@activelayer)
 
     for p, i in @pieces
       p.id = i
@@ -44,12 +50,14 @@ class Puzzle
     
     Command.onCommit.push((cmds) =>
       for cmd in cmds when cmd.isTransformCommand()
+        window.console.log("#{cmd.constructor.name} piece[#{cmd.piece.id}]");
         @tryMerge(cmd.piece)
       for cmd in cmds when cmd instanceof MergeCommand
+        @sounds?.merge?.play()
         mergee = cmd.mergee
         @container.removeChild(mergee.shape)
+        @container.addChild(cmd.piece.shape)
         @stage.update()
-        @sounds?.merge?.play()
         break
       return
     )

@@ -10,21 +10,16 @@ class BrowserController
       @puzzle.stage.update();
     
     @puzzle.stage.canvas.onmousewheel = (e) =>
-      unless @last_wheel?
+      unless @captured?
         p = @puzzle.stage.getObjectUnderPoint(e.clientX, e.clientY)?.piece
         if p?
-          @last_wheel =
-            piece: p
-            center: @puzzle.container.globalToLocal(e.clientX, e.clientY)
+          @capture(p, @puzzle.container.globalToLocal(e.clientX, e.clientY))
           @puzzle.stage.canvas.onmousemove = (e) =>
-            @flushLastWheel()
-      if @last_wheel?
-        piece = @last_wheel.piece
-        center = @last_wheel.center
-        if e.wheelDelta > 0
-          new RotateCommand(piece, center, -12).post()
-        else
-          new RotateCommand(piece, center, 12).post()
+            @decapture()
+      if @captured?
+        piece = @captured.piece
+        center = @captured.point
+        new RotateCommand(piece, center, -e.wheelDelta / 10).post()
       else
         @hideManipulator()
         if e.wheelDelta > 0
@@ -49,10 +44,19 @@ class BrowserController
       return
     )
 
-  flushLastWheel: ->
-    if @last_wheel?
+  capture: (p, point) ->
+    window.console.log("captured[#{p.id}] ( #{point.x}, #{point.y} )")
+    @captured =
+      piece: p
+      point: point
+    @cacheExcept(p)
+    
+  decapture: ->
+    if @captured?
+      window.console.log("decaptured[#{@captured.piece.id}]")
+      @uncache()
       Command.commit()
-      @last_wheel = null
+      @captured = null
       @puzzle.stage.canvas.onmousemove = null
 
   zoom: (x, y, scale) ->
@@ -89,9 +93,19 @@ class BrowserController
     @manipulator.target = null
     @puzzle.foreground.removeChild(@manipulator)
 
+  cacheExcept: (p) ->
+    @puzzle.container.removeChild(p.shape)
+    @puzzle.wrapper.cache(0, 0, @puzzle.stage.canvas.width, @puzzle.stage.canvas.height)
+    @puzzle.activelayer.copyTransform(@puzzle.container)
+    @puzzle.activelayer.addChild(p.shape)
+
+  uncache: ->
+    @puzzle.container.addChild(@puzzle.activelayer.children...)
+    @puzzle.wrapper.uncache()
+    
   onStagePressed: (e) =>
     @hideManipulator()
-    @flushLastWheel()
+    @decapture()
     @puzzle.stage.update()
     window.console.log("stage pressed: ( #{e.stageX}, #{e.stageY} )")
     last_point = new Point(e.stageX, e.stageY)
@@ -105,19 +119,22 @@ class BrowserController
   
   onPiecePressed: (e) =>
     @hideManipulator()
-    @flushLastWheel()
     piece = e.target.piece
     window.console.log("piece[#{e.target.piece.id}] pressed: ( #{e.stageX}, #{e.stageY} )");
-    @puzzle.container.addChild(e.target)
+    
+    @decapture()
+    last_point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
+    @capture(piece, last_point)
     @puzzle.stage.update()
 
-    last_point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
     e.onMouseMove = (ev) =>
       pt = @puzzle.container.globalToLocal(ev.stageX, ev.stageY)
       vec = pt.subtract(last_point)
       new TranslateCommand(e.target.piece, vec).post()
+      @captured.point = @captured.point.add(vec)
       last_point = pt
     e.onMouseUp = (ev) =>
+      @decapture()
       Command.commit()
       @showManipulator(piece, new Point(ev.stageX, ev.stageY))
 
@@ -130,7 +147,6 @@ class BrowserController
       center = @manipulator.localToLocal(0, 0, @puzzle.container)
       @manipulator.rotation += degree
       new RotateCommand(piece, center, degree).post()
-#      last_point = pt
     e.onMouseUp = (ev) =>
       Command.commit()
 
