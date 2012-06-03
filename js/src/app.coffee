@@ -9,7 +9,7 @@ $( ->
   image.onload = ->
     image.aspect_ratio = image.width / image.height
     cutter = new StandardGridCutter()
-    cutter.nx = 50
+    cutter.nx = 3
     cutter.ny = Math.round(cutter.nx / image.aspect_ratio)
     cutter.width = image.width
     cutter.height = image.height

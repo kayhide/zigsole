@@ -17,7 +17,7 @@ class Puzzle
     @stage.addChild(@background)
 
     @pieces = @cutter.cut(@image)
-    @translation_tolerance = @cutter.linear_measure / 4
+    @translation_tolerance = @cutter.linear_measure / 8
 
     @wrapper = new Container()
     @stage.addChild(@wrapper)
@@ -44,24 +44,23 @@ class Puzzle
     @stage.update()
     
     Command.onPost.push((cmd) =>
+      if cmd instanceof MergeCommand
+        @sounds?.merge?.play()
+        @container.removeChild(cmd.mergee.shape)
       @stage.update()
       return
     )
     
     Command.onCommit.push((cmds) =>
-      for cmd in cmds when cmd.isTransformCommand()
+      tried = {}
+      for cmd in cmds when cmd.isTransformCommand() and !tried[cmd.piece.id]?
         window.console.log("#{cmd.constructor.name} piece[#{cmd.piece.id}]");
         @tryMerge(cmd.piece)
-      for cmd in cmds when cmd instanceof MergeCommand
-        @sounds?.merge?.play()
-        mergee = cmd.mergee
-        @container.removeChild(mergee.shape)
-        @container.addChild(cmd.piece.shape)
-        @stage.update()
-        break
+        tried[cmd.piece.id] = true
       return
     )
 
+    
   tryMerge: (piece) ->
     for p in piece.getAdjacentPieces() when p.isWithinTolerance(piece)
       new MergeCommand(p, piece).commit()

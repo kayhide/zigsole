@@ -2,8 +2,12 @@ class BrowserController
   constructor: (@puzzle) ->
     @uses_manipulator = false
     @manipulator = new Shape()
+    @colors =
+      shadow: "#AFF"
   
   attach: ->
+    @puzzle.activelayer.shadow = new Shadow(@colors.shadow, 0, 0, 8)
+    
     window.onresize = ->
       @puzzle.stage.canvas.width = window.innerWidth
       @puzzle.stage.canvas.height = window.innerHeight
@@ -49,12 +53,16 @@ class BrowserController
     @captured =
       piece: p
       point: point
-    @cacheExcept(p)
-    
+    @puzzle.container.removeChild(p.shape)
+    @puzzle.wrapper.cache(0, 0, @puzzle.stage.canvas.width, @puzzle.stage.canvas.height)
+    @puzzle.activelayer.copyTransform(@puzzle.container)
+    @puzzle.activelayer.addChild(p.shape)
+
   decapture: ->
     if @captured?
       window.console.log("decaptured[#{@captured.piece.id}]")
-      @uncache()
+      @puzzle.container.addChild(@puzzle.activelayer.children...)
+      @puzzle.wrapper.uncache()
       Command.commit()
       @captured = null
       @puzzle.stage.canvas.onmousemove = null
@@ -93,16 +101,6 @@ class BrowserController
     @manipulator.target = null
     @puzzle.foreground.removeChild(@manipulator)
 
-  cacheExcept: (p) ->
-    @puzzle.container.removeChild(p.shape)
-    @puzzle.wrapper.cache(0, 0, @puzzle.stage.canvas.width, @puzzle.stage.canvas.height)
-    @puzzle.activelayer.copyTransform(@puzzle.container)
-    @puzzle.activelayer.addChild(p.shape)
-
-  uncache: ->
-    @puzzle.container.addChild(@puzzle.activelayer.children...)
-    @puzzle.wrapper.uncache()
-    
   onStagePressed: (e) =>
     @hideManipulator()
     @decapture()
