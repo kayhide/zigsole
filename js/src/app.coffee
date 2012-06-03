@@ -17,6 +17,7 @@ $( ->
     cutter.irregularity = 0.2
     puzzle.initizlize(image, cutter)
   
+    new BrowserController(puzzle).attach()
     $("#info").text("#{cutter.count} ( #{cutter.nx} x #{cutter.ny} )")
     
   image.src = "asset/AA145_L.jpg"
@@ -26,9 +27,5 @@ $( ->
   }
 
   window.puzzle = puzzle
-  
-  window.onresize = ->
-    field.width = window.innerWidth
-    field.height = window.innerHeight
-    puzzle.update();
+  window.pieces = puzzle.pieces
 )

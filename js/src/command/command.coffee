@@ -1,24 +1,24 @@
 class Command
-  @onCommit: null
-  @onPost: null
-  @onReject: null
+  @onCommit: []
+  @onPost: []
+  @onReject: []
   @commands: []
   @current_commands: []
 
   @commit: ->
     cmds = @squash()
     @commands.concat(cmds)
-    @onCommit?(cmds)
+    fnc(cmds) for fnc in @onCommit
     cmds
 
   @post: (cmd) ->
     if cmd.isValid()
       cmd.execute()
       @current_commands.push(cmd)
-      @onPost?(cmd)
+      fnc(cmd) for fnc in @onPost
     else
       cmd.rejected = true
-      @onReject?(cmd)
+      fnc(cmd) for fnc in @onReject
     cmd
     
   @squash: ->
