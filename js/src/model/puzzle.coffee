@@ -29,6 +29,8 @@ class Puzzle
       p.shape.piece = p
       p.draw()
       @container.addChild(p.shape)
+    @shuffle()
+    @fit()
 
     @foreground = new Container()
     @stage.addChild(@foreground)
@@ -57,6 +59,28 @@ class Puzzle
       new MergeCommand(p, piece).commit()
       break
     return
+
+  shuffle: ->
+    s = Math.max(@image.width, @image.height) * 2
+    for p in @pieces when p.isAlive()
+      center = p.getCenter()
+      center = p.shape.localToParent(center.x, center.y)
+      new RotateCommand(p, center, Math.random() * 360).execute()
+      vec = new Point(Math.random() * s, Math.random() * s)
+      new TranslateCommand(p, vec.subtract(center)).execute()
+
+  fit: ->
+    rect = Rectangle.getEmpty()
+    for p in @pieces when p.isAlive()
+      for pt in p.getBoundary().getCornerPoints()
+        rect.addPoint(pt1 = p.shape.localToParent(pt.x, pt.y))
+    sx = window.innerWidth / rect.width
+    sy = window.innerHeight / rect.height
+    sc = Math.min(sx, sy)
+    @container.scaleX = sc
+    @container.scaleY = sc
+    @container.x = -rect.x * sc + (window.innerWidth - sc * rect.width) / 2
+    @container.y = -rect.y * sc + (window.innerHeight - sc * rect.height) / 2
 
 
 @Puzzle = Puzzle
