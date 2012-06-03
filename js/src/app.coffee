@@ -9,7 +9,7 @@ $( ->
   image.onload = ->
     image.aspect_ratio = image.width / image.height
     cutter = new StandardGridCutter()
-    cutter.nx = 4
+    cutter.nx = 10
     cutter.ny = Math.round(cutter.nx / image.aspect_ratio)
     cutter.width = image.width
     cutter.height = image.height
@@ -20,8 +20,8 @@ $( ->
     new BrowserController(puzzle).attach()
     $("#info").text("#{cutter.count} ( #{cutter.nx} x #{cutter.ny} )")
     
-  image.src = "asset/AA145_L.jpg"
-
+#  image.src = "asset/AA145_L.jpg"
+  image.src = "asset/IMG_1605.JPG"
   puzzle.sounds = {
     merge: document.getElementById("se-merge")
   }
