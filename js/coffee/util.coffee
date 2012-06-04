@@ -75,6 +75,10 @@ Array::getBottomRight = -> new Point(@[0] + @[2], @[1] + @[3])
 Array::getCornerPoints = ->
   [@getTopLeft(), @getTopRight(), @getBottomLeft(), @getBottomRight()]
 
+
+DisplayObject::remove = ->
+  @parent?.removeChild(this)
+
 DisplayObject::localToParent = (x, y) ->
   @localToLocal(x, y, @parent)
 

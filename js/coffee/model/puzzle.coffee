@@ -10,10 +10,13 @@ class Puzzle
   
   initizlize: (@image, @cutter) ->
     #@stage.enableMouseOver()
+    if $.android?
+      Touch.enable(@stage)
     
     @background = new Shape()
-    @background.graphics.beginFill(Graphics.getRGB(0,0,0))
-    @background.graphics.rect(0, 0, screen.width, screen.height)
+    @background.graphics
+      .beginFill(Graphics.getRGB(0,0,0))
+      .rect(0, 0, window.innerWidth, window.innerHeight)
     @stage.addChild(@background)
 
     @pieces = @cutter.cut(@image)
@@ -36,13 +39,10 @@ class Puzzle
       p.draw()
       @container.addChild(p.shape)
     @shuffle()
-    @fit()
 
     @foreground = new Container()
     @stage.addChild(@foreground)
 
-    @stage.update()
-    
     Command.onPost.push((cmd) =>
       if cmd instanceof MergeCommand
         @sounds?.merge?.play()
@@ -76,6 +76,15 @@ class Puzzle
     @container.scaleY = sc
     @container.x = -rect.x * sc + (window.innerWidth - sc * rect.width) / 2
     @container.y = -rect.y * sc + (window.innerHeight - sc * rect.height) / 2
+    @stage.update()
 
+  centerize: ->
+    rect = Rectangle.getEmpty()
+    for p in @pieces when p.isAlive()
+      for pt in p.getBoundary().getCornerPoints()
+        rect.addPoint(pt1 = p.shape.localToParent(pt.x, pt.y))
+    @container.x = -rect.x + (window.innerWidth - rect.width) / 2
+    @container.y = -rect.y + (window.innerHeight - rect.height) / 2
+    @stage.update()
 
 @Puzzle = Puzzle
