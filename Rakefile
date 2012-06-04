@@ -10,11 +10,11 @@ end
 
 desc 'watches coffee files.'
 task 'watch' do
-  coffee '-wco js/bin js/src'
+  coffee '-wco js/src js/coffee'
 end
 
-desc 'launches tests server.'
-task 'run-test-server' do
+desc 'starts test server.'
+task 'start-test-server' do
   java "-jar #{@jstestdriver_dir}/JsTestDriver-1.3.4.b.jar --port 4224"
 end
 

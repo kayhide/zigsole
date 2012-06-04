@@ -3,9 +3,9 @@ require 'fileutils'
 
 $>.sync = true
 
-@src_dir = File.expand_path('../js/src', __FILE__)
+@src_dir = File.expand_path('../js/coffee', __FILE__)
 @src_ext = '.coffee'
-@dst_dir = File.expand_path('../js/bin', __FILE__)
+@dst_dir = File.expand_path('../js/src', __FILE__)
 @dst_ext = '.js'
 
 @cmd = 'coffee -co :dst_dir :src'
