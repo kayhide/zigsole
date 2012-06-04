@@ -15,6 +15,9 @@ Point::apply = (mtx) ->
 Point::distanceTo = (pt) ->
   Math.sqrt(Math.pow(pt.x - @x, 2) + Math.pow(pt.y - @y, 2))
 
+Point::isZero = ->
+  @x == 0 and @y == 0
+
 Rectangle.getEmpty = ->
   rect = new Rectangle()
   rect.empty = true

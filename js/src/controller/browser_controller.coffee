@@ -8,22 +8,21 @@ class BrowserController
   attach: ->
     @puzzle.activelayer.shadow = new Shadow(@colors.shadow, 0, 0, 8)
     
-    window.onresize = ->
+    $().on('resize', ->
       @puzzle.stage.canvas.width = window.innerWidth
       @puzzle.stage.canvas.height = window.innerHeight
-      @puzzle.stage.update();
-    
-    @puzzle.stage.canvas.onmousewheel = (e) =>
+      @puzzle.stage.update()
+    )
+
+    $(@puzzle.stage.canvas).on('mousewheel', (e) =>
+      e = e.originalEvent
       unless @captured?
         p = @puzzle.stage.getObjectUnderPoint(e.clientX, e.clientY)?.piece
         if p?
           @capture(p, @puzzle.container.globalToLocal(e.clientX, e.clientY))
-          @puzzle.stage.canvas.onmousemove = (e) =>
-            @decapture()
       if @captured?
-        piece = @captured.piece
-        center = @captured.point
-        new RotateCommand(piece, center, -e.wheelDelta / 10).post()
+        { piece, point } = @captured
+        new RotateCommand(piece, point, -e.wheelDelta / 10).post()
       else
         @hideManipulator()
         if e.wheelDelta > 0
@@ -31,7 +30,7 @@ class BrowserController
         else
           @zoom(e.x, e.y, 1/1.2)
       return
-      
+    )
 
     @puzzle.background.onPress = @onStagePressed
     
@@ -41,6 +40,15 @@ class BrowserController
     @updateManipulator()
     @manipulator.onPress = @onManipulatorPressed
 
+    Command.onPost.push((cmd) =>
+      if cmd instanceof MergeCommand
+        @puzzle.container.removeChild(cmd.mergee.shape)
+        if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
+          @release()
+      @puzzle.stage.update()
+      return
+    )
+    
     Command.onCommit.push((cmds) =>
       unless @manipulator.target?.isAlive()
         @hideManipulator()
@@ -49,23 +57,48 @@ class BrowserController
     )
 
   capture: (p, point) ->
-    window.console.log("captured[#{p.id}] ( #{point.x}, #{point.y} )")
-    @captured =
-      piece: p
-      point: point
-    @puzzle.container.removeChild(p.shape)
-    @puzzle.wrapper.cache(0, 0, @puzzle.stage.canvas.width, @puzzle.stage.canvas.height)
-    @puzzle.activelayer.copyTransform(@puzzle.container)
-    @puzzle.activelayer.addChild(p.shape)
-
-  decapture: ->
     if @captured?
-      window.console.log("decaptured[#{@captured.piece.id}]")
-      @puzzle.container.addChild(@puzzle.activelayer.children...)
+      Command.commit()
+    else
+      window.console.log("captured[#{p.id}] ( #{point.x}, #{point.y} )")
+      @captured =
+        piece: p
+        point: point
+      @puzzle.container.removeChild(p.shape)
+      @puzzle.wrapper.cache(0, 0, @puzzle.stage.canvas.width, @puzzle.stage.canvas.height)
+      @puzzle.activelayer.copyTransform(@puzzle.container)
+      @puzzle.activelayer.addChild(p.shape)
+#      p.cache()
+      $(@puzzle.stage.canvas).on(
+        mousemove: (e) =>
+          pt = @puzzle.container.globalToLocal(e.clientX, e.clientY)
+          vec = pt.subtract(@captured.point)
+          unless vec.isZero()
+            if @captured.mouse_pressed?
+              @captured.point = pt
+              new TranslateCommand(@captured.piece, vec).post()
+            else
+              @release()
+          return
+        mouseup: (e) =>
+          if e.which == 1
+            @captured.mouse_pressed = null
+            Command.commit()
+            @puzzle.tryMerge(@captured.piece)
+      )
+
+  release: ->
+    if @captured?
+      window.console.log("released[#{@captured.piece.id}]")
+      if @captured.piece.isAlive()
+        @puzzle.container.addChild(@captured.piece.shape)
+      else
+        @puzzle.activelayer.removeChild(@captured.piece.shape)
       @puzzle.wrapper.uncache()
+      @captured.piece.uncache()
       Command.commit()
       @captured = null
-      @puzzle.stage.canvas.onmousemove = null
+      $(@puzzle.stage.canvas).off('mousemove mouseup')
 
   zoom: (x, y, scale) ->
     @puzzle.container.scaleX = @puzzle.container.scaleX * scale
@@ -103,7 +136,6 @@ class BrowserController
 
   onStagePressed: (e) =>
     @hideManipulator()
-    @decapture()
     @puzzle.stage.update()
     window.console.log("stage pressed: ( #{e.stageX}, #{e.stageY} )")
     last_point = new Point(e.stageX, e.stageY)
@@ -120,21 +152,10 @@ class BrowserController
     piece = e.target.piece
     window.console.log("piece[#{e.target.piece.id}] pressed: ( #{e.stageX}, #{e.stageY} )");
     
-    @decapture()
-    last_point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
-    @capture(piece, last_point)
+    point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
+    @capture(piece, point)
+    @captured.mouse_pressed = true
     @puzzle.stage.update()
-
-    e.onMouseMove = (ev) =>
-      pt = @puzzle.container.globalToLocal(ev.stageX, ev.stageY)
-      vec = pt.subtract(last_point)
-      new TranslateCommand(e.target.piece, vec).post()
-      @captured.point = @captured.point.add(vec)
-      last_point = pt
-    e.onMouseUp = (ev) =>
-      @decapture()
-      Command.commit()
-      @showManipulator(piece, new Point(ev.stageX, ev.stageY))
 
   onManipulatorPressed: (e) =>
     piece = @manipulator.target

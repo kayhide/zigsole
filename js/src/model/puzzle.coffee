@@ -46,21 +46,9 @@ class Puzzle
     Command.onPost.push((cmd) =>
       if cmd instanceof MergeCommand
         @sounds?.merge?.play()
-        @container.removeChild(cmd.mergee.shape)
-      @stage.update()
-      return
-    )
-    
-    Command.onCommit.push((cmds) =>
-      tried = {}
-      for cmd in cmds when cmd.isTransformCommand() and !tried[cmd.piece.id]?
-        window.console.log("#{cmd.constructor.name} piece[#{cmd.piece.id}]");
-        @tryMerge(cmd.piece)
-        tried[cmd.piece.id] = true
       return
     )
 
-    
   tryMerge: (piece) ->
     for p in piece.getAdjacentPieces() when p.isWithinTolerance(piece)
       new MergeCommand(p, piece).commit()
