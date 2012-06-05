@@ -82,10 +82,6 @@ KBD(VK_H,CLICK,40)
 KBD(VK_RETURN,CLICK,40)
 
 
-id=Exec("C:/usr/xyzzy/xyzzy.exe <#DBL>C:/htdocs/coffee/zigsole/js/src/app.coffee<#DBL>")
-ACW(id,2064,103,1356,983,0)
-
-
 Exec("<#DBL>C:\Documents and Settings\kawai\Local Settings\Application Data\Google\Chrome\Application\chrome.exe<#DBL> http://localhost/coffee/zigsole/ --new-window")
 id = GETID("localhost/coffee/zigsole/ - Google Chrome","Chrome_WidgetWin_1")
 ACW(id,355,6,1452,1178,0)
@@ -94,3 +90,7 @@ KBD(VK_SHIFT,DOWN,15)
 KBD(VK_J,CLICK,40)
 KBD(VK_SHIFT,UP,40)
 KBD(VK_CTRL,UP,31)
+
+
+id=Exec("C:/usr/xyzzy/xyzzy.exe <#DBL>C:/htdocs/coffee/zigsole/js/coffee/app.coffee<#DBL>")
+ACW(id,2064,103,1356,983,0)
