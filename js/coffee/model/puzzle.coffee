@@ -14,9 +14,13 @@ class Puzzle
       Touch.enable(@stage)
     
     @background = new Shape()
+    @background.width = window.innerWidth * 2
+    @background.height = window.innerHeight * 2
+    @background.color = "#002"
     @background.graphics
-      .beginFill(Graphics.getRGB(0,0,0))
-      .rect(0, 0, window.innerWidth, window.innerHeight)
+      .beginFill(@background.color)
+      .rect(0, 0, @background.width, @background.height)
+    @background.alpha = 0.9
     @stage.addChild(@background)
 
     @pieces = @cutter.cut(@image)
@@ -55,6 +59,13 @@ class Puzzle
       break
     return
 
+  getBoundary: ->
+    rect = Rectangle.getEmpty()
+    for p in @pieces when p.isAlive()
+      for pt in p.getBoundary().getCornerPoints()
+        rect.addPoint(pt1 = p.shape.localToParent(pt.x, pt.y))
+    rect
+
   shuffle: ->
     s = Math.max(@image.width, @image.height) * 2
     for p in @pieces when p.isAlive()
@@ -64,11 +75,15 @@ class Puzzle
       vec = new Point(Math.random() * s, Math.random() * s)
       new TranslateCommand(p, vec.subtract(center)).execute()
 
+  centerize: ->
+    rect = @getBoundary()
+    {scaleX: sx, scaleY: sy} = @container
+    @container.x = -rect.x * sx + (window.innerWidth - sx * rect.width) / 2
+    @container.y = -rect.y * sy + (window.innerHeight - sy * rect.height) / 2
+    @stage.update()
+
   fit: ->
-    rect = Rectangle.getEmpty()
-    for p in @pieces when p.isAlive()
-      for pt in p.getBoundary().getCornerPoints()
-        rect.addPoint(pt1 = p.shape.localToParent(pt.x, pt.y))
+    rect = @getBoundary()
     sx = window.innerWidth / rect.width
     sy = window.innerHeight / rect.height
     sc = Math.min(sx, sy)
@@ -78,13 +93,23 @@ class Puzzle
     @container.y = -rect.y * sc + (window.innerHeight - sc * rect.height) / 2
     @stage.update()
 
-  centerize: ->
-    rect = Rectangle.getEmpty()
-    for p in @pieces when p.isAlive()
-      for pt in p.getBoundary().getCornerPoints()
-        rect.addPoint(pt1 = p.shape.localToParent(pt.x, pt.y))
-    @container.x = -rect.x + (window.innerWidth - rect.width) / 2
-    @container.y = -rect.y + (window.innerHeight - rect.height) / 2
+  fill: ->
+    rect = @getBoundary()
+    sx = window.innerWidth / rect.width
+    sy = window.innerHeight / rect.height
+    sc = Math.max(sx, sy)
+    @container.scaleX = sc
+    @container.scaleY = sc
+    @container.x = -rect.x * sc + (window.innerWidth - sc * rect.width) / 2
+    @container.y = -rect.y * sc + (window.innerHeight - sc * rect.height) / 2
     @stage.update()
+
+  zoom: (x, y, scale) ->
+    @container.scaleX = @container.scaleX * scale
+    @container.scaleY = @container.scaleX
+    @container.x = x - (x - @container.x) * scale
+    @container.y = y - (y - @container.y) * scale
+    @stage.update()
+
 
 @Puzzle = Puzzle

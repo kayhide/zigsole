@@ -83,11 +83,7 @@ class MouseController
       Command.commit()
 
   zoom: (x, y, scale) ->
-    @puzzle.container.scaleX = @puzzle.container.scaleX * scale
-    @puzzle.container.scaleY = @puzzle.container.scaleX
-    @puzzle.container.x = x - (x - @puzzle.container.x) * scale
-    @puzzle.container.y = y - (y - @puzzle.container.y) * scale
-    @puzzle.stage.update()
+    @puzzle.zoom(x, y, scale)
 
   onStagePressed: (e) =>
     window.console.log("stage pressed: ( #{e.stageX}, #{e.stageY} )")

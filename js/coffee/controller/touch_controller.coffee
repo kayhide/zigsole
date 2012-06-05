@@ -42,7 +42,7 @@ class TouchController
         point: point
       @showManipulator()
       p.shape.shadow = @shadow
-#      @puzzle.container.addChild(p.shape)
+      @puzzle.container.addChild(p.shape)
       
   
   release: ->
