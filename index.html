@@ -20,18 +20,20 @@
 <script src="js/src/controller/touch_controller.js"></script>
 <script src="js/src/app.js"></script>
 <link rel="stylesheet" type="text/css" href="css/styles.css" />
-<meta name="viewport" content="initial-scale=1,minimum-scale=0.2,maximum-scale=10" />
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 </head>
 <body>
 <canvas id="field" style="position:absolute;top:0;left:0;"></canvas>
-<div style="position:absolute;bottom:0;right:0">
-<div>
-<a href="#fit">[O]</a>
-<a href="#zoom-in">[+]</a>
-<a href="#zoom-out">[-]</a>
+<div style="position:absolute;bottom:0;right:0;font-size:32px">
+<a href="#zoom-in">[+]</a><br />
+<a href="#zoom-out">[-]</a><br />
+<a href="#fit">[=]</a><br />
 </div>
-<div id="info" style="color:white">ロード</div>
+<div style="position:absolute;bottom:0;left:0">
+<div id="info" style="color:white"></div>
 </div>
-<audio id="se-merge" src="asset/merge.wav" />
+<audio id="se-merge" src="asset/merge.mp3" />
 </body>
 </html>

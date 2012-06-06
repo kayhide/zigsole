@@ -21,14 +21,14 @@ class TouchController
         @puzzle.container.removeChild(cmd.mergee.shape)
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
-      @puzzle.stage.update()
+      @puzzle.invalidate()
       return
     )
     
     Command.onCommit.push((cmds) =>
       unless @captured?
         @hideManipulator()
-        @puzzle.stage.update()
+        @puzzle.invalidate()
       return
     )
 
@@ -59,8 +59,8 @@ class TouchController
   updateManipulator: ->
     g = @manipulator.graphics
     g.clear()
-    r = Math.min(window.innerWidth, window.innerHeight) / 4
-    g.setStrokeStyle(r/4)
+    r = @puzzle.cutter.linear_measure
+    g.setStrokeStyle(@puzzle.cutter.linear_measure / 2)
     #g.beginRadialGradientStroke(["#AFF","#0FF"], [0, 1], 0, 0, r*7/8, 0, 0, r*9/8)
     g.beginStroke(@colors.shadow)
     g.drawCircle(0, 0, r)
@@ -77,7 +77,7 @@ class TouchController
       @manipulator.x = point.x
       @manipulator.y = point.y
       @puzzle.foreground.addChild(@manipulator)
-      @puzzle.stage.update()
+      @puzzle.invalidate()
 
   hideManipulator: ->
     @puzzle.foreground.removeChild(@manipulator)
@@ -85,7 +85,7 @@ class TouchController
   onStagePressed: (e) =>
     if @captured?
       @release()
-      @puzzle.stage.update()
+      @puzzle.invalidate()
     window.console.log("stage pressed: ( #{e.stageX}, #{e.stageY} )")
     last_point = new Point(e.stageX, e.stageY)
 
@@ -99,7 +99,7 @@ class TouchController
       @puzzle.container.y += pt.y - last_point.y
       
       last_point = pt;
-      @puzzle.stage.update();
+      @puzzle.invalidate();
   
   onPiecePressed: (e) =>
     piece = e.target.piece
@@ -107,7 +107,7 @@ class TouchController
     
     point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
     @capture(piece, point)
-    @puzzle.stage.update()
+    @puzzle.invalidate()
 
     first_move = true
     e.onMouseMove = (ev) =>

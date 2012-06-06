@@ -34,7 +34,7 @@ class MouseController
         cmd.mergee.shape.remove()
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
-      @puzzle.stage.update()
+      @puzzle.invalidate()
       return
     )
 
@@ -55,11 +55,13 @@ class MouseController
           pt = @puzzle.container.globalToLocal(e.clientX, e.clientY)
           vec = pt.subtract(@captured.point)
           unless vec.isZero()
+            @captured.point = pt
             if @captured.mouse_pressed?
-              @captured.point = pt
               new TranslateCommand(@captured.piece, vec).post()
             else
-              @release()
+              lpt = @captured.piece.shape.globalToLocal(e.clientX, e.clientY)
+              unless @captured.piece.shape.hitTest(lpt.x, lpt.y)
+                @release()
           return
         mouseup: (e) =>
           if e.which == 1
@@ -78,6 +80,7 @@ class MouseController
       @captured = null
       $(@puzzle.stage.canvas).off('mousemove mouseup')
       Command.commit()
+      @puzzle.invalidate()
 
   zoom: (x, y, scale) ->
     @puzzle.zoom(x, y, scale)
@@ -90,7 +93,7 @@ class MouseController
       @puzzle.container.y += pt.y - last_point.y
       
       last_point = pt;
-      @puzzle.stage.update();
+      @puzzle.invalidate();
   
   onPiecePressed: (e) =>
     piece = e.target.piece
@@ -99,7 +102,7 @@ class MouseController
     point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
     @capture(piece, point)
     @captured.mouse_pressed = true
-    @puzzle.stage.update()
+    @puzzle.invalidate()
 
 
 @MouseController = MouseController

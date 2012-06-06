@@ -14,12 +14,7 @@ class Puzzle
       Touch.enable(@stage)
     
     @background = new Shape()
-    @background.width = window.innerWidth * 2
-    @background.height = window.innerHeight * 2
     @background.color = "#002"
-    @background.graphics
-      .beginFill(@background.color)
-      .rect(0, 0, @background.width, @background.height)
     @background.alpha = 0.9
     @stage.addChild(@background)
 
@@ -110,6 +105,9 @@ class Puzzle
     @container.x = x - (x - @container.x) * scale
     @container.y = y - (y - @container.y) * scale
     @stage.update()
+
+  invalidate: ->
+    @invalidated = true
 
 
 @Puzzle = Puzzle
