@@ -23,6 +23,7 @@ class MouseController
       return
     )
 
+    
     @puzzle.background.onPress = @onStagePressed
     
     for p in @puzzle.pieces
@@ -33,11 +34,6 @@ class MouseController
         cmd.mergee.shape.remove()
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
-      @puzzle.stage.update()
-      return
-    )
-    
-    Command.onCommit.push((cmd) =>
       @puzzle.stage.update()
       return
     )
@@ -52,7 +48,8 @@ class MouseController
         point: point
       @puzzle.activelayer.copyTransform(@puzzle.container)
       @puzzle.activelayer.addChild(p.shape)
-      @puzzle.wrapper.cache(0, 0, @puzzle.stage.canvas.width, @puzzle.stage.canvas.height)
+      @puzzle.wrapper.cache(0, 0, window.innerWidth, window.innerHeight)
+      #p.cache()
       $(@puzzle.stage.canvas).on(
         mousemove: (e) =>
           pt = @puzzle.container.globalToLocal(e.clientX, e.clientY)
@@ -86,7 +83,6 @@ class MouseController
     @puzzle.zoom(x, y, scale)
 
   onStagePressed: (e) =>
-    window.console.log("stage pressed: ( #{e.stageX}, #{e.stageY} )")
     last_point = new Point(e.stageX, e.stageY)
     e.onMouseMove = (ev) =>
       pt = new Point(ev.stageX, ev.stageY)

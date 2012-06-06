@@ -4,6 +4,7 @@ class Piece
     @loops = []
     @shape = null
     @merger = null
+    @draws_image = true
     @draws_stroke = false
     @draws_control_line = false
     @draws_boundary = false
@@ -91,16 +92,20 @@ class Piece
     @boundary = null
     g = @shape.graphics
     g.clear()
-    g.beginBitmapFill(@puzzle.image)
-    g.beginStroke(2) if @draws_stroke
+    if @draws_image
+      g.beginBitmapFill(@puzzle.image)
+    else
+      g.beginFill("#9fa")
+    if @draws_stroke
+      g.setStrokeStyle(2).beginStroke("#f0f")
     for lp in @loops
       @drawCurve(lp.getCurve())
     g.endFill().endStroke()
     boundary = @getBoundary()
     if @draws_boundary
-      g.beginStroke(1).rect(boundary...)
+      g.setStrokeStyle(2).beginStroke("#0f0").rect(boundary...)
     if @draws_control_line
-      g.beginStroke(1)
+      g.setStrokeStyle(2).beginStroke("#fff")
       for lp in @loops
         @drawPolyline(lp.getCurve())
     if @draws_center
@@ -109,7 +114,7 @@ class Piece
 
   cache: ->
     boundary = @getBoundary()
-    @shape.cache(boundary[0] - 1, boundary[1] - 1, boundary[2] + 2, boundary[3] + 2)
+    @shape.cache(boundary[0] - 10, boundary[1] - 10, boundary[2] + 20, boundary[3] + 20)
 
   uncache: ->
     @shape.uncache()

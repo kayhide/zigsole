@@ -10,7 +10,7 @@ $( ->
     field.height = screen.height
   else
     field.width = window.innerWidth
-    field.height = window.outerHeight
+    field.height = window.innerHeight
   
   puzzle = new Puzzle(field)
   
@@ -22,7 +22,7 @@ $( ->
     cutter.nx = if $.browser.small
       4
     else
-      10
+      5
     cutter.ny = Math.round(cutter.nx / image.aspect_ratio)
     cutter.width = image.width
     cutter.height = image.height
@@ -41,6 +41,13 @@ $( ->
 
     $(field).addClass('checkered')
     $("#info").text("#{cutter.count} ( #{cutter.nx} x #{cutter.ny} )")
+
+    Ticker.setInterval(10)
+    Ticker.init()
+    Ticker.addListener((cmd) =>
+      puzzle.stage.update()
+      $("#info").text("FPS: #{Ticker.getMeasuredFPS()}")
+    )
 
 
   for a in $('a')
