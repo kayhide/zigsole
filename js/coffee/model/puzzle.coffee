@@ -10,8 +10,6 @@ class Puzzle
   
   initizlize: (@image, @cutter) ->
     #@stage.enableMouseOver()
-    if $.android?
-      Touch.enable(@stage)
     
     @background = new Shape()
     @background.color = "#002"

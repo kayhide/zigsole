@@ -4,16 +4,12 @@ $( ->
   $.browser.iphone = true if /iphone/.test(navigator.userAgent.toLowerCase())
   $.browser.ipad = true if /iphone/.test(navigator.userAgent.toLowerCase())
   $.browser.ipod = true if /iphone/.test(navigator.userAgent.toLowerCase())
-  $.browser.ios = $.browser.iphone? or $.browser.ipad? or $.browser.ipod?
-  $.browser.smart_phone = $.browser.android? or $.browser.iphone?
+  $.browser.ios = true if $.browser.iphone? or $.browser.ipad? or $.browser.ipod?
+  $.browser.smart_phone = true if $.browser.android? or $.browser.iphone?
   
   field = document.getElementById("field")
-  if $.browser.smart_phone?
-    field.width = screen.width
-    field.height = screen.height
-  else
-    field.width = window.innerWidth
-    field.height = window.innerHeight
+  field.width = window.innerWidth
+  field.height = window.innerHeight
   
   puzzle = new Puzzle(field)
   
@@ -33,10 +29,14 @@ $( ->
     if $.browser.smart_phone?
       puzzle.centerize()
       puzzle.zoom(window.innerWidth / 2, window.innerHeight / 2, 1 / 2)
+    else
+      puzzle.fill()
+
+    if Touch.isSupported()
+      Touch.enable(puzzle.stage)
       new BrowserController(puzzle).attach()
       new TouchController(puzzle).attach()
     else
-      puzzle.fill()
       new BrowserController(puzzle).attach()
       new MouseController(puzzle).attach()
 
@@ -52,28 +52,33 @@ $( ->
     $("#info")[0].appendChild(p)
     #$("#info").text("sh: #{screen.height} wh: #{window.innerHeight}")
 
-    Ticker.setInterval(10)
-    Ticker.init()
-    Ticker.addListener((cmd) =>
+    Ticker.setFPS(60)
+    Ticker.addListener(window)
+
+    window.tick = =>
       if puzzle.invalidated?
         puzzle.stage.update()
         puzzle.invalidated = null
-      $("#ticker").text("FPS: #{Math.floor(Ticker.getMeasuredFPS()).toString()}")
-    )
+      $("#ticker").text("FPS: #{Math.round(Ticker.getMeasuredFPS())}")
+
 
 
   for a in $('a')
     switch a.hash
       when '#fit'
-        a.onclick = => puzzle.fit()
+        a.onclick = =>
+          puzzle.fit()
+          return false
       when '#zoom-in'
         a.onclick = =>
           puzzle.zoom(window.innerWidth / 2, window.innerHeight / 2, 1.2)
+          return false
       when '#zoom-out'
         a.onclick = =>
           puzzle.zoom(window.innerWidth / 2, window.innerHeight / 2, 1 / 1.2)
+          return false
 
-  if $.browser.android? or $.browser.iphone?
+  if $.browser.smart_phone?
     image.src = "asset/AA145_L_320.jpg"
   else
 #    image.src = "asset/AA145_L.jpg"
