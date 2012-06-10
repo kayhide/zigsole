@@ -4,8 +4,6 @@ class MouseController
       shadow: "#AFF"
   
   attach: ->
-    @puzzle.activelayer.shadow = new Shadow(@colors.shadow, 0, 0, 8)
-    
     $(@puzzle.stage.canvas).on('mousewheel', (e) =>
       e = e.originalEvent
       unless @captured?
@@ -47,9 +45,12 @@ class MouseController
         piece: p
         point: point
       @puzzle.activelayer.copyTransform(@puzzle.container)
+      blur = 8 / @puzzle.container.scaleX
+      p.shape.shadow = new Shadow(@colors.shadow, 0, 0, blur)
+      p.enbox()
+      p.cache(blur)
       @puzzle.activelayer.addChild(p.shape)
       @puzzle.wrapper.cache(0, 0, window.innerWidth, window.innerHeight)
-      #p.cache()
       $(@puzzle.stage.canvas).on(
         mousemove: (e) =>
           pt = @puzzle.container.globalToLocal(e.clientX, e.clientY)
@@ -76,7 +77,10 @@ class MouseController
       if @captured.piece.isAlive()
         @puzzle.container.addChild(@captured.piece.shape)
       @puzzle.wrapper.uncache()
-      @captured.piece.uncache()
+      p = @captured.piece
+      p.unbox()
+      p.uncache()
+      p.shape.shadow = null
       @captured = null
       $(@puzzle.stage.canvas).off('mousemove mouseup')
       Command.commit()

@@ -112,12 +112,29 @@ class Piece
       center = @getCenter()
       g.beginStroke(2).drawCircle(center.x, center.y, 4)
 
-  cache: ->
+  cache: (padding = 0) ->
     boundary = @getBoundary()
-    @shape.cache(boundary[0] - 10, boundary[1] - 10, boundary[2] + 20, boundary[3] + 20)
+    @shape.cache(boundary[0] - padding, boundary[1] - padding, boundary[2] + padding * 2, boundary[3] + padding * 2)
 
   uncache: ->
     @shape.uncache()
+
+  enbox: ->
+    @inner_shape = @shape
+    @shape = new Container()
+    @shape.copyTransform(@inner_shape)
+    @inner_shape.clearTransform()
+    @inner_shape.parent.addChild(@shape)
+    @shape.addChild(@inner_shape)
+    boundary = @getBoundary()
+
+  unbox: ->
+    if @inner_shape?
+      @inner_shape.copyTransform(@shape)
+      @shape.parent.addChild(@inner_shape)
+      @shape.remove()
+      @shape = @inner_shape
+      @inner_shape = null
 
   drawCurve: (points) ->
     g = @shape.graphics

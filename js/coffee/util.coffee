@@ -87,3 +87,7 @@ DisplayObject::copyTransform = (src) ->
   @y = src.y
   @scaleX = src.scaleX
   @scaleY = src.scaleY
+  @rotation = src.rotation
+
+DisplayObject::clearTransform = ->
+  @setTransform()
