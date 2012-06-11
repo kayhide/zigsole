@@ -29,9 +29,9 @@ class MouseController
 
     Command.onPost.push((cmd) =>
       if cmd instanceof MergeCommand
-        cmd.mergee.shape.remove()
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
+        cmd.mergee.shape.remove()
       @puzzle.invalidate()
       return
     )
