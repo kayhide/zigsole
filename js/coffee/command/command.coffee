@@ -41,9 +41,6 @@ class Command
   squash: (cmd) ->
     false
 
-  isTransformCommand: ->
-    false
-
   isValid: ->
     true
 

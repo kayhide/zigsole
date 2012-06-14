@@ -1,27 +1,21 @@
-class RotateCommand extends Command
+class RotateCommand extends TransformCommand
   constructor: (@piece, @center, @degree) ->
-
-  execute: ->
     mtx = new Matrix2D()
-    mtx.rotate Math.PI * @degree / 180
-    local_center = new Point(@center.x - @piece.shape.x, @center.y - @piece.shape.y)
-    pos = local_center.apply(mtx)
-    vec = pos.subtract(local_center)
-    @piece.shape.rotation += @degree
-    @piece.shape.x -= vec.x
-    @piece.shape.y -= vec.y
+    mtx.rotate(Math.PI * @degree / 180)
+    v0 = @center.subtract(@piece.position)
+    v1 = v0.apply(mtx)
+    @position = @piece.position.subtract(v1.subtract(v0))
+    @rotation = @piece.rotation + @degree
 
   squash: (cmd) ->
     if (cmd instanceof RotateCommand and
         cmd.piece == @piece and
         cmd.center == @center)
       @degree += cmd.degree
+      { @position, @rotation } = cmd
       true
     else
       false
-
-  isTransformCommand: ->
-    true
 
   isValid: ->
     @piece?.isAlive() and @center?

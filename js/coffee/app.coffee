@@ -18,19 +18,13 @@ $( ->
     image.aspect_ratio = image.width / image.height
     cutter = new StandardGridCutter()
     
-    cutter.nx = if $.browser.smart_phone? then 4 else 30
+    cutter.nx = if $.browser.smart_phone? then 4 else 3
     cutter.ny = Math.round(cutter.nx / image.aspect_ratio)
     cutter.width = image.width
     cutter.height = image.height
     cutter.fluctuation = 0.3
     cutter.irregularity = 0.2
     puzzle.initizlize(image, cutter)
-
-    if $.browser.smart_phone?
-      puzzle.centerize()
-      puzzle.zoom(window.innerWidth / 2, window.innerHeight / 2, 1 / 2)
-    else
-      puzzle.fill()
 
     if Touch.isSupported()
       Touch.enable(puzzle.stage)
@@ -40,6 +34,15 @@ $( ->
       new BrowserController(puzzle).attach()
       new MouseController(puzzle).attach()
 
+    puzzle.shuffle()
+
+    if $.browser.smart_phone?
+      puzzle.centerize()
+      puzzle.zoom(window.innerWidth / 2, window.innerHeight / 2, 1 / 2)
+    else
+      puzzle.fill()
+
+    
     $(field).addClass('checkered')
     
     p = document.createElement('p')

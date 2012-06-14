@@ -35,7 +35,6 @@ class Puzzle
       p.shape.piece = p
       p.draw()
       @container.addChild(p.shape)
-    @shuffle()
 
     @foreground = new Container()
     @stage.addChild(@foreground)
@@ -64,9 +63,9 @@ class Puzzle
     for p in @pieces when p.isAlive()
       center = p.getCenter()
       center = p.shape.localToParent(center.x, center.y)
-      new RotateCommand(p, center, Math.random() * 360).execute()
+      new RotateCommand(p, center, Math.random() * 360).post()
       vec = new Point(Math.random() * s, Math.random() * s)
-      new TranslateCommand(p, vec.subtract(center)).execute()
+      new TranslateCommand(p, vec.subtract(center)).post()
 
   centerize: ->
     rect = @getBoundary()

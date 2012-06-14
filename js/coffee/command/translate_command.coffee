@@ -1,20 +1,16 @@
-class TranslateCommand extends Command
+class TranslateCommand extends TransformCommand
   constructor: (@piece, @vector) ->
-
-  execute: ->
-    @piece.shape.x += @vector.x
-    @piece.shape.y += @vector.y
+    @position = @piece.position.add(@vector)
+    @rotation = @piece.rotation
 
   squash: (cmd) ->
     if (cmd instanceof TranslateCommand and
         cmd.piece == @piece)
       @vector = @vector.add(cmd.vector)
+      { @position, @rotation } = cmd
       true
     else
       false
-
-  isTransformCommand: ->
-    true
 
   isValid: ->
     @piece?.isAlive()

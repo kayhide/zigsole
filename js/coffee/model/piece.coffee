@@ -4,6 +4,8 @@ class Piece
     @loops = []
     @shape = null
     @merger = null
+    @position = new Point()
+    @rotation = 0
     @draws_image = true
     @draws_stroke = false
     @draws_control_line = false

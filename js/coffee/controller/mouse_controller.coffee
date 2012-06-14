@@ -28,6 +28,10 @@ class MouseController
       p.shape.onPress = @onPiecePressed
 
     Command.onPost.push((cmd) =>
+      if cmd instanceof TransformCommand
+        cmd.piece.shape.x = cmd.position.x
+        cmd.piece.shape.y = cmd.position.y
+        cmd.piece.shape.rotation = cmd.rotation
       if cmd instanceof MergeCommand
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
