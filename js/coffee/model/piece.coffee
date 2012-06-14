@@ -4,13 +4,29 @@ class Piece
     @loops = []
     @shape = null
     @merger = null
-    @position = new Point()
-    @rotation = 0
+    @_position = new Point()
+    @_rotation = 0
     @draws_image = true
     @draws_stroke = false
     @draws_control_line = false
     @draws_boundary = false
     @draws_center = false
+
+  position: (pt) ->
+    if pt?
+      @_position = pt
+      @boundary = null
+      this
+    else
+      @_position
+
+  rotation: (deg) ->
+    if deg?
+      @_rotation = deg
+      @boundary = null
+      this
+    else
+      @_rotation
 
   addLoop: (lp) ->
     @loops.push(lp)
@@ -68,30 +84,40 @@ class Piece
       pieces[p.id] = p
     (value for key, value of pieces when value != this)
 
+  getLocalPoints: ->
+    points = []
+    for lp in @loops
+      for pt in lp.getCurve() when pt?
+        points.push(pt)
+    points
+
+  getLocalBoundary: ->
+    points = @getLocalPoints()
+    Point.boundary(pt for pt in points when pt?)
+
+  getPoints: ->
+    mtx = new Matrix2D()
+    mtx.rotate(Math.PI * @_rotation / 180)
+    mtx.translate(@_position.x, @_position.y)
+    points = @getLocalPoints()
+    points = (pt.apply(mtx) for pt in points when pt?)
+    @boundary = Point.boundary(points)
+
   getBoundary: ->
-    unless @boundary?
-      points = []
-      points = points.concat(lp.getCurve()) for lp in @loops
-      if points.length > 0
-        pt0 = points[0].clone()
-        pt1 = points[0].clone()
-        for pt in points[1..] when pt?
-          pt0.x = pt.x if pt.x < pt0.x
-          pt0.y = pt.y if pt.y < pt0.y
-          pt1.x = pt.x if pt.x > pt1.x
-          pt1.y = pt.y if pt.y > pt1.y
-        @boundary = [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y]
-      else
-        @boundary = [0, 0, 0, 0]
+    unless @boundary? and false
+      mtx = new Matrix2D()
+      mtx.rotate(Math.PI * @_rotation / 180)
+      mtx.translate(@_position.x, @_position.y)
+      points = @getLocalPoints()
+      points = (pt.apply(mtx) for pt in points when pt?)
+      @boundary = Point.boundary(points)
     @boundary
 
   getCenter: ->
-    boundary = @getBoundary()
-    new Point(boundary[0] + boundary[2] / 2, boundary[1] + boundary[3] / 2)
-    
+    @getBoundary().getCenter()
+
   draw: ->
     @shape.uncache()
-    @boundary = null
     g = @shape.graphics
     g.clear()
     if @draws_image
@@ -103,20 +129,22 @@ class Piece
     for lp in @loops
       @drawCurve(lp.getCurve())
     g.endFill().endStroke()
-    boundary = @getBoundary()
+    boundary = @getLocalBoundary()
     if @draws_boundary
-      g.setStrokeStyle(2).beginStroke("#0f0").rect(boundary...)
+      g.setStrokeStyle(2).beginStroke("#0f0")
+      .rect(boundary.x, boundary.y, boundary.width, boundary.height)
     if @draws_control_line
       g.setStrokeStyle(2).beginStroke("#fff")
       for lp in @loops
         @drawPolyline(lp.getCurve())
     if @draws_center
-      center = @getCenter()
-      g.beginStroke(2).drawCircle(center.x, center.y, 4)
+      center = boundary.getCenter()
+      g.setStrokeStyle(2).beginFill("#390")
+      .drawCircle(center.x, center.y, @puzzle.cutter.linear_measure / 32)
 
   cache: (padding = 0) ->
-    boundary = @getBoundary()
-    @shape.cache(boundary[0] - padding, boundary[1] - padding, boundary[2] + padding * 2, boundary[3] + padding * 2)
+    boundary = @getLocalBoundary()
+    @shape.cache(boundary.x - padding, boundary.y - padding, boundary.width + padding * 2, boundary.height + padding * 2)
 
   uncache: ->
     @shape.uncache()
@@ -128,7 +156,7 @@ class Piece
     @inner_shape.clearTransform()
     @inner_shape.parent.addChild(@shape)
     @shape.addChild(@inner_shape)
-    boundary = @getBoundary()
+    boundary = @getLocalBoundary()
 
   unbox: ->
     if @inner_shape?

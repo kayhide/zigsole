@@ -1,11 +1,11 @@
 class RotateCommand extends TransformCommand
   constructor: (@piece, @center, @degree) ->
     mtx = new Matrix2D()
+    mtx.translate(-@center.x, -@center.y)
     mtx.rotate(Math.PI * @degree / 180)
-    v0 = @center.subtract(@piece.position)
-    v1 = v0.apply(mtx)
-    @position = @piece.position.subtract(v1.subtract(v0))
-    @rotation = @piece.rotation + @degree
+    mtx.translate(center.x, center.y)
+    @position = @piece.position().apply(mtx)
+    @rotation = @piece.rotation() + @degree
 
   squash: (cmd) ->
     if (cmd instanceof RotateCommand and

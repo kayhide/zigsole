@@ -18,13 +18,14 @@ Point::distanceTo = (pt) ->
 Point::isZero = ->
   @x == 0 and @y == 0
 
-Rectangle.getEmpty = ->
+Rectangle.createEmpty = ->
   rect = new Rectangle()
   rect.empty = true
   rect
 
 Rectangle::clear = ->
   @empty = true
+  this
 
 Rectangle::isEmpty = ->
   @empty?
@@ -51,29 +52,33 @@ Rectangle::addPoint = (pt) ->
       @height = pt.y - @y
   this
 
-Point.boundary = (points) ->
-  if points.length > 0
-    pt0 = points[0].clone()
-    pt1 = points[0].clone()
-    for pt in points[1..] when pt?
-      pt0.x = pt.x if pt.x < pt0.x
-      pt0.y = pt.y if pt.y < pt0.y
-      pt1.x = pt.x if pt.x > pt1.x
-      pt1.y = pt.y if pt.y > pt1.y
-    [pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y]
-  else
-    [0, 0, 0, 0]
+Rectangle::addRectangle = (rect) ->
+  for pt in rect.getCornerPoints()
+    @addPoint(pt)
+  this
 
-Array::getTopLeft = -> new Point(@[0], @[1])
+Rectangle::getTopLeft = -> new Point(@x, @y)
 
-Array::getTopRight = -> new Point(@[0] + @[2], @[1])
+Rectangle::getTopRight = -> new Point(@x + @width, @y)
 
-Array::getBottomLeft = -> new Point(@[0], @[1] + @[3])
+Rectangle::getBottomLeft = -> new Point(@x, @y + @height)
 
-Array::getBottomRight = -> new Point(@[0] + @[2], @[1] + @[3])
+Rectangle::getBottomRight = -> new Point(@x + @width, @y + @height)
 
-Array::getCornerPoints = ->
+Rectangle::getCornerPoints = ->
   [@getTopLeft(), @getTopRight(), @getBottomLeft(), @getBottomRight()]
+
+Rectangle::getCenter = ->
+  new Point(@x + @width / 2, @y + @height / 2)
+
+
+Point.boundary = (points) ->
+  rect = Rectangle.createEmpty()
+  for pt in points
+    rect.addPoint(pt)
+  rect
+
+Point::toArray = -> [@x, @y]
 
 
 DisplayObject::remove = ->
@@ -91,3 +96,43 @@ DisplayObject::copyTransform = (src) ->
 
 DisplayObject::clearTransform = ->
   @setTransform()
+
+DisplayObject::projectTo = (dst) ->
+  pt0 = @localToWindow(@x, @y)
+  pt1 = dst.windowToLocal(pt0.x, pt0.y)
+  @x = pt1.x
+  @y = pt1.y
+  dst.addChild(this)
+
+DisplayObject::localToWindow = (x, y) ->
+  pt = @localToGlobal(x, y)
+  pt0 = $(@getStage().canvas).position()
+  pt.x += pt0.left
+  pt.y += pt0.top
+  pt
+
+DisplayObject::windowToLocal = (x, y) ->
+  pt = @globalToLocal(x, y)
+  pt0 = $(@getStage().canvas).position()
+  pt.x -= pt0.left
+  pt.y -= pt0.top
+  pt
+
+
+$.fn.extend({
+  rotation: (val) ->
+    if val?
+      return this.each( ->
+        $(this).css({
+          '-webkit-transform': "rotate(#{val}deg)"
+          '-moz-transform': "rotate(#{val}deg)"
+          '-ms-transform': "rotate(#{val}deg)"
+          '-o-transform': "rotate(#{val}deg)"
+          'transform': "rotate(#{val}deg)"
+        })
+      )
+    else
+      null
+})
+
+

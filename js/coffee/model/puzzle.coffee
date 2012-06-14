@@ -52,10 +52,9 @@ class Puzzle
     return
 
   getBoundary: ->
-    rect = Rectangle.getEmpty()
+    rect = Rectangle.createEmpty()
     for p in @pieces when p.isAlive()
-      for pt in p.getBoundary().getCornerPoints()
-        rect.addPoint(pt1 = p.shape.localToParent(pt.x, pt.y))
+      rect.addRectangle(p.getBoundary())
     rect
 
   shuffle: ->
@@ -69,7 +68,7 @@ class Puzzle
 
   centerize: ->
     rect = @getBoundary()
-    {scaleX: sx, scaleY: sy} = @container
+    { scaleX: sx, scaleY: sy } = @container
     @container.x = -rect.x * sx + (window.innerWidth - sx * rect.width) / 2
     @container.y = -rect.y * sy + (window.innerHeight - sy * rect.height) / 2
     @stage.update()
