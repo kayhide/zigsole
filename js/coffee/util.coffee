@@ -71,6 +71,12 @@ Rectangle::getCornerPoints = ->
 Rectangle::getCenter = ->
   new Point(@x + @width / 2, @y + @height / 2)
 
+Rectangle::inflate = (offset) ->
+  @x -= offset
+  @y -= offset
+  @width += offset * 2
+  @height += offset * 2
+  this
 
 Point.boundary = (points) ->
   rect = Rectangle.createEmpty()
@@ -80,6 +86,55 @@ Point.boundary = (points) ->
 
 Point::toArray = -> [@x, @y]
 
+Point::from = (obj) ->
+  pt = @clone()
+  pt.on = obj
+  pt
+
+Point::to = (obj) ->
+  if @on?
+    if @on.getStage() == obj.getStage()
+      if @on_global?
+        pt = obj.globalToLocal(@x, @y)
+      else
+        pt = @on.localToLocal(@x, @y, obj)
+    else
+      if @on_global?
+        pt = @on.globalToWindow(@x, @y)
+        pt = obj.windowToLocal(pt.x, pt.y)
+      else
+        pt = @on.localToWindow(@x, @y)
+        pt = obj.windowToLocal(pt.x, pt.y)
+  else if @on_window?
+    pt = obj.windowToLocal(@x, @y)
+  else
+    pt = obj.globalToLocal(@x, @y)
+  pt.on = obj
+  pt.on_global = null
+  pt.on_window = null
+  pt
+
+Point::toWindow = ->
+  if @on?
+    if @on_global?
+      pt = @on.globalToWindow(@x, @y)
+    else
+      pt = @on.localToWindow(@x, @y)
+  else
+    pt = @clone()
+  pt.on = null
+  pt.on_global = null
+  pt.on_window = true
+  pt
+
+Point::toGlobal = ->
+  if @on? and !@on_window? and !@on_global?
+    pt = @on.localToGlobal(@x, @y)
+    pt.on_global = true
+  else
+    pt = @clone()
+  pt.on_window = null
+  pt
 
 DisplayObject::remove = ->
   @parent?.removeChild(this)
@@ -88,51 +143,37 @@ DisplayObject::localToParent = (x, y) ->
   @localToLocal(x, y, @parent)
 
 DisplayObject::copyTransform = (src) ->
-  @x = src.x
-  @y = src.y
-  @scaleX = src.scaleX
-  @scaleY = src.scaleY
-  @rotation = src.rotation
+  { @x, @y, @scaleX, @scaleY, @rotation } = src
 
 DisplayObject::clearTransform = ->
   @setTransform()
 
 DisplayObject::projectTo = (dst) ->
-  pt0 = @localToWindow(@x, @y)
+  pt0 = @localToWindow(0, 0)
   pt1 = dst.windowToLocal(pt0.x, pt0.y)
-  @x = pt1.x
-  @y = pt1.y
+  { @x, @y } = pt1
   dst.addChild(this)
 
 DisplayObject::localToWindow = (x, y) ->
-  pt = @localToGlobal(x, y)
   pt0 = $(@getStage().canvas).position()
+  pt = @localToGlobal(x, y)
   pt.x += pt0.left
   pt.y += pt0.top
   pt
 
 DisplayObject::windowToLocal = (x, y) ->
-  pt = @globalToLocal(x, y)
   pt0 = $(@getStage().canvas).position()
-  pt.x -= pt0.left
-  pt.y -= pt0.top
+  pt = @globalToLocal(x - pt0.left, y - pt0.top)
   pt
 
+DisplayObject::globalToWindow = (x, y) ->
+  pt0 = $(@getStage().canvas).position()
+  new Point(x + pt0.left, y + pt0.top)
 
-$.fn.extend({
-  rotation: (val) ->
-    if val?
-      return this.each( ->
-        $(this).css({
-          '-webkit-transform': "rotate(#{val}deg)"
-          '-moz-transform': "rotate(#{val}deg)"
-          '-ms-transform': "rotate(#{val}deg)"
-          '-o-transform': "rotate(#{val}deg)"
-          'transform': "rotate(#{val}deg)"
-        })
-      )
-    else
-      null
-})
+DisplayObject::windowToGlobal = (x, y) ->
+  pt0 = $(@getStage().canvas).position()
+  new Point(x - pt0.left, y - pt0.top)
 
+Stage::invalidate = ->
+  @invalidated = true
 

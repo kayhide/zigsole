@@ -1,6 +1,7 @@
 class Puzzle
-  constructor: (canvas) ->
+  constructor: (canvas, front) ->
     @stage = new Stage(canvas)
+    @activelayer = new Stage(front)
     @image = null
     @sounds = null
     @cutter = null
@@ -24,9 +25,6 @@ class Puzzle
     
     @container = new Container()
     @wrapper.addChild(@container)
-
-    @activelayer = new Container()
-    @stage.addChild(@activelayer)
 
     for p, i in @pieces
       p.id = i
@@ -103,7 +101,8 @@ class Puzzle
     @stage.update()
 
   invalidate: ->
-    @invalidated = true
+    @stage.invalidate()
+    @activelayer.invalidate()
 
 
 @Puzzle = Puzzle

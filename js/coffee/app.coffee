@@ -6,19 +6,28 @@ $( ->
   $.browser.ipod = true if /iphone/.test(navigator.userAgent.toLowerCase())
   $.browser.ios = true if $.browser.iphone? or $.browser.ipad? or $.browser.ipod?
   $.browser.smart_phone = true if $.browser.android? or $.browser.iphone?
+#  $.browser.smart_phone = true
   
-  field = document.getElementById("field")
-  field.width = window.innerWidth
-  field.height = window.innerHeight
+  field = $("#field")
+  field
+  .width(window.innerWidth)
+  .height(window.innerHeight)
+
+  front = $("#active")
+  front
+#  .css('background-color', 'rgba(200, 255, 255, 0.5)')
+  .hide()
+  .draggable({ cursor: 'move', scroll: false })
+
   
-  puzzle = new Puzzle(field)
+  puzzle = new Puzzle(field[0], front[0])
   
   image = new Image()
   image.onload = ->
     image.aspect_ratio = image.width / image.height
     cutter = new StandardGridCutter()
     
-    cutter.nx = if $.browser.smart_phone? then 4 else 3
+    cutter.nx = if $.browser.smart_phone? then 4 else 30
     cutter.ny = Math.round(cutter.nx / image.aspect_ratio)
     cutter.width = image.width
     cutter.height = image.height
@@ -43,7 +52,7 @@ $( ->
       puzzle.fill()
 
     
-    $(field).addClass('checkered')
+    field.addClass('checkered')
     
     p = document.createElement('p')
     p.id = 'piece-count'
@@ -59,9 +68,16 @@ $( ->
     Ticker.addListener(window)
 
     window.tick = =>
-      if puzzle.invalidated?
+      if puzzle.stage.invalidated?
         puzzle.stage.update()
-        puzzle.invalidated = null
+        puzzle.stage.invalidated = null
+      if puzzle.activelayer.invalidated?
+        if puzzle.activelayer.children.length > 0
+          $(puzzle.activelayer.canvas).show()
+        else
+          $(puzzle.activelayer.canvas).hide()
+        puzzle.activelayer.update()
+        puzzle.activelayer.invalidated = null
       $("#ticker").text("FPS: #{Math.round(Ticker.getMeasuredFPS())}")
 
 

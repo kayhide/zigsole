@@ -10,10 +10,7 @@ class MouseController
         p = @puzzle.stage.getObjectUnderPoint(e.clientX, e.clientY)?.piece
         if p?
           @capture(p, @puzzle.container.globalToLocal(e.clientX, e.clientY))
-      if @captured?
-        { piece, point } = @captured
-        new RotateCommand(piece, point, -e.wheelDelta / 10).post()
-      else
+      unless @captured?
         if e.wheelDelta > 0
           @zoom(e.x, e.y, 1.2)
         else
@@ -21,26 +18,59 @@ class MouseController
       return
     )
 
-    
-    @puzzle.background.onPress = @onStagePressed
-    
-    for p in @puzzle.pieces
-      p.shape.onPress = @onPiecePressed
+    $(@puzzle.stage.canvas).on('mousedown', (e) =>
+      pt = new Point(e.offsetX, e.offsetY)
+      p = @puzzle.stage.getObjectUnderPoint(pt.x, pt.y)?.piece
+      if p?
+        @capture(p, pt.to(@puzzle.container), e)
+        return
+      @dragStage(e)
+      return
+    )
 
     Command.onPost.push((cmd) =>
       if cmd instanceof TransformCommand
-        cmd.piece.shape.x = cmd.position.x
-        cmd.piece.shape.y = cmd.position.y
-        cmd.piece.shape.rotation = cmd.rotation
+        if @captured?.piece == cmd.piece
+          if cmd instanceof RotateCommand
+            @putToActivelayer(cmd.piece)
+            @puzzle.activelayer.invalidate()
+        else
+          p = cmd.piece
+          { x: p.shape.x, y: p.shape.y } = p.position()
+          p.shape.rotation = p.rotation()
+          @puzzle.stage.invalidate()
       if cmd instanceof MergeCommand
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
         cmd.mergee.shape.remove()
-      @puzzle.invalidate()
+        @puzzle.stage.invalidate()
       return
     )
 
-  capture: (p, point) ->
+  putToActivelayer: (p) ->
+    boundary = p.getBoundary().inflate(10)
+    pt0 = @puzzle.container.localToWindow(boundary.x, boundary.y)
+    pt1 = @puzzle.container.localToWindow(boundary.x + boundary.width, boundary.y + boundary.height)
+    @puzzle.activelayer.copyTransform(@puzzle.container)
+    @puzzle.activelayer.x = 0
+    @puzzle.activelayer.y = 0
+    @puzzle.activelayer.canvas.width = (pt1.x - pt0.x)
+    @puzzle.activelayer.canvas.height = (pt1.y - pt0.y)
+    $(@puzzle.activelayer.canvas)
+    .css('left', pt0.x)
+    .css('top', pt0.y)
+    .width(@puzzle.activelayer.canvas.width)
+    .height(@puzzle.activelayer.canvas.height)
+    .show()
+    { x: p.shape.x, y: p.shape.y } =
+      p.position()
+      .from(@puzzle.container)
+      .to(@puzzle.activelayer)
+    p.shape.rotation = p.rotation()
+    @puzzle.activelayer.addChild(p.shape)
+    @puzzle.activelayer.update()
+
+  capture: (p, point, event) ->
     if @captured?
       Command.commit()
     else
@@ -48,69 +78,92 @@ class MouseController
       @captured =
         piece: p
         point: point
-      @puzzle.activelayer.copyTransform(@puzzle.container)
-      blur = 8 / @puzzle.container.scaleX
+      @captured.dragging = true if event?
+      
+      blur = 8
       p.shape.shadow = new Shadow(@colors.shadow, 0, 0, blur)
-      p.enbox()
-      p.cache(blur)
-      @puzzle.activelayer.addChild(p.shape)
-      @puzzle.wrapper.cache(0, 0, window.innerWidth, window.innerHeight)
-      $(@puzzle.stage.canvas).on(
-        mousemove: (e) =>
-          pt = @puzzle.container.globalToLocal(e.clientX, e.clientY)
+      @putToActivelayer(p)
+      @puzzle.invalidate()
+      $(@puzzle.activelayer.canvas).on(
+        drag: (e, ui) =>
+          pt =
+            new Point(e.clientX, e.clientY)
+            .toWindow()
+            .to(@puzzle.activelayer)
+            .to(@puzzle.container)
           vec = pt.subtract(@captured.point)
-          unless vec.isZero()
-            @captured.point = pt
-            if @captured.mouse_pressed?
-              new TranslateCommand(@captured.piece, vec).post()
-            else
-              lpt = @captured.piece.shape.globalToLocal(e.clientX, e.clientY)
-              unless @captured.piece.shape.hitTest(lpt.x, lpt.y)
-                @release()
+          @captured.point = pt
+          new TranslateCommand(@captured.piece, vec).post()
           return
-        mouseup: (e) =>
-          if e.which == 1
-            @captured.mouse_pressed = null
-            Command.commit()
-            @puzzle.tryMerge(@captured.piece)
+        dragstart: (e, ui) =>
+          @captured.dragging = true
+          @captured.point =
+            new Point(e.clientX, e.clientY)
+            .toWindow()
+            .to(@puzzle.activelayer)
+            .to(@puzzle.container)
+          return
+        mouseup: (e, ui) =>
+          @captured.dragging = null
+          Command.commit()
+          @puzzle.tryMerge(@captured.piece)
+          return
+        mousewheel: (e) =>
+          e = e.originalEvent
+          if @captured?
+            { piece, point } = @captured
+            new RotateCommand(piece, point, -e.wheelDelta / 10).post()
+          return
       )
+      $(window).on(
+        mousemove: (e) =>
+          unless @captured?.dragging?
+            @captured.point =
+              new Point(e.clientX, e.clientY)
+              .toWindow()
+              .to(@puzzle.activelayer)
+              .to(@puzzle.container)
+            pt = @captured.point.to(@captured.piece.shape)
+            unless @captured.piece.shape.hitTest(pt.x, pt.y)
+              @release()
+          return
+      )
+      if event?.type == 'mousedown'
+        $(@puzzle.activelayer.canvas).trigger(event)
 
   release: ->
     if @captured?
       window.console.log("released[#{@captured.piece.id}]")
-      if @captured.piece.isAlive()
-        @puzzle.container.addChild(@captured.piece.shape)
-      @puzzle.wrapper.uncache()
       p = @captured.piece
-      p.unbox()
-      p.uncache()
       p.shape.shadow = null
+      if p.isAlive()
+        { x: p.shape.x, y: p.shape.y } = p.position()
+        p.shape.rotation = p.rotation()
+        @puzzle.container.addChild(p.shape)
       @captured = null
-      $(@puzzle.stage.canvas).off('mousemove mouseup')
+      $(@puzzle.activelayer.canvas).off('drag dragstart mouseup mousewheel')
+      $(window).off('mousemove')
       Command.commit()
       @puzzle.invalidate()
 
   zoom: (x, y, scale) ->
     @puzzle.zoom(x, y, scale)
 
-  onStagePressed: (e) =>
-    last_point = new Point(e.stageX, e.stageY)
-    e.onMouseMove = (ev) =>
-      pt = new Point(ev.stageX, ev.stageY)
-      @puzzle.container.x += pt.x - last_point.x
-      @puzzle.container.y += pt.y - last_point.y
+  dragStage: (event) ->
+    last_point = new Point(event.clientX, event.clientY)
+    $(window).on(
+      mousemove: (e, ui) =>
+        pt = new Point(e.clientX, e.clientY)
+        @puzzle.container.x += pt.x - last_point.x
+        @puzzle.container.y += pt.y - last_point.y
       
-      last_point = pt;
-      @puzzle.invalidate();
-  
-  onPiecePressed: (e) =>
-    piece = e.target.piece
-    window.console.log("piece[#{e.target.piece.id}] pressed: ( #{e.stageX}, #{e.stageY} )");
-    
-    point = @puzzle.container.globalToLocal(e.stageX, e.stageY)
-    @capture(piece, point)
-    @captured.mouse_pressed = true
-    @puzzle.invalidate()
+        last_point = pt;
+        @puzzle.stage.invalidate();
+        return
+      mouseup: (e, ui) =>
+        $(window).off('mousemove mouseup')
+        return
+    )
 
 
 @MouseController = MouseController

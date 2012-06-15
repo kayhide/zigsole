@@ -28,6 +28,12 @@ class Piece
     else
       @_rotation
 
+  matrix: (pt) ->
+    mtx = new Matrix2D()
+    mtx.rotate(Math.PI * @_rotation / 180)
+    mtx.translate(@_position.x, @_position.y)
+    mtx
+
   addLoop: (lp) ->
     @loops.push(lp)
     lp.piece.removeLoop(lp) if lp.piece?
@@ -53,10 +59,11 @@ class Piece
     
   isWithinTolerance: (target) ->
     if Math.abs(@getDegreeTo(target)) < @puzzle.rotation_tolerance
+      mtx = @matrix()
       for he in @getEdges() when he.mate.loop?.piece == target
         pt = he.getCenter()
-        pt0 = @shape.localToParent(pt.x, pt.y)
-        pt1 = target.shape.localToParent(pt.x, pt.y)
+        pt0 = pt.apply(mtx)
+        pt1 = pt.apply(target.matrix())
         if pt0.distanceTo(pt1) < @puzzle.translation_tolerance
           return true
     return false
@@ -92,25 +99,16 @@ class Piece
     points
 
   getLocalBoundary: ->
-    points = @getLocalPoints()
-    Point.boundary(pt for pt in points when pt?)
+    Point.boundary(@getLocalPoints())
 
   getPoints: ->
-    mtx = new Matrix2D()
-    mtx.rotate(Math.PI * @_rotation / 180)
-    mtx.translate(@_position.x, @_position.y)
+    mtx = @matrix()
     points = @getLocalPoints()
-    points = (pt.apply(mtx) for pt in points when pt?)
-    @boundary = Point.boundary(points)
+    (pt.apply(mtx) for pt in points)
 
   getBoundary: ->
     unless @boundary? and false
-      mtx = new Matrix2D()
-      mtx.rotate(Math.PI * @_rotation / 180)
-      mtx.translate(@_position.x, @_position.y)
-      points = @getLocalPoints()
-      points = (pt.apply(mtx) for pt in points when pt?)
-      @boundary = Point.boundary(points)
+      @boundary = Point.boundary(@getPoints())
     @boundary
 
   getCenter: ->
