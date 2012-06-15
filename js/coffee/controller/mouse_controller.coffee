@@ -150,17 +150,23 @@ class MouseController
     @puzzle.zoom(x, y, scale)
 
   dragStage: (event) ->
+    [w, h] = [window.screen.width, window.screen.height]
+    pt0 = new Point(-w / 2, -h / 2).fromWindow().to(@puzzle.wrapper)
+    pt1 = new Point(w * 3 / 2, h * 3 / 2).fromWindow().to(@puzzle.wrapper)
+    @puzzle.wrapper.cache(pt0.x, pt0.y, pt1.x - pt0.x, pt1.y - pt0.y)
     last_point = new Point(event.clientX, event.clientY)
     $(window).on(
       mousemove: (e, ui) =>
         pt = new Point(e.clientX, e.clientY)
-        @puzzle.container.x += pt.x - last_point.x
-        @puzzle.container.y += pt.y - last_point.y
+        @puzzle.wrapper.x += pt.x - last_point.x
+        @puzzle.wrapper.y += pt.y - last_point.y
       
         last_point = pt;
         @puzzle.stage.invalidate();
         return
       mouseup: (e, ui) =>
+        @puzzle.wrapper.uncache()
+        @puzzle.stage.invalidate();
         $(window).off('mousemove mouseup')
         return
     )

@@ -96,8 +96,13 @@ class Puzzle
   zoom: (x, y, scale) ->
     @container.scaleX = @container.scaleX * scale
     @container.scaleY = @container.scaleX
-    @container.x = x - (x - @container.x) * scale
-    @container.y = y - (y - @container.y) * scale
+    pt0 = new Point(x, y).fromWindow().to(@wrapper)
+    mtx = new Matrix2D()
+    mtx.translate(-pt0.x, -pt0.y)
+    mtx.scale(scale, scale)
+    mtx.translate(pt0.x, pt0.y)
+    pt1 = @container.position().apply(mtx)
+    { x: @container.x, y: @container.y } = pt1
     @stage.update()
 
   invalidate: ->

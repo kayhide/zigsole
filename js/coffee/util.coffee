@@ -114,6 +114,20 @@ Point::to = (obj) ->
   pt.on_window = null
   pt
 
+Point::toGlobal = ->
+  if @on? and !@on_window? and !@on_global?
+    pt = @on.localToGlobal(@x, @y)
+    pt.on_global = true
+  else
+    pt = @clone()
+  pt.on_window = null
+  pt
+
+Point::fromWindow = ->
+  pt = @clone()
+  pt.on_window = true
+  pt
+
 Point::toWindow = ->
   if @on?
     if @on_global?
@@ -127,17 +141,11 @@ Point::toWindow = ->
   pt.on_window = true
   pt
 
-Point::toGlobal = ->
-  if @on? and !@on_window? and !@on_global?
-    pt = @on.localToGlobal(@x, @y)
-    pt.on_global = true
-  else
-    pt = @clone()
-  pt.on_window = null
-  pt
-
 DisplayObject::remove = ->
   @parent?.removeChild(this)
+
+DisplayObject::position = ->
+  new Point(@x, @y)
 
 DisplayObject::localToParent = (x, y) ->
   @localToLocal(x, y, @parent)
