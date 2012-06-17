@@ -1,5 +1,4 @@
 $( ->
-  window.console.log($.browser)
   $.browser.android = true if /android/.test(navigator.userAgent.toLowerCase())
   $.browser.iphone = true if /iphone/.test(navigator.userAgent.toLowerCase())
   $.browser.ipad = true if /iphone/.test(navigator.userAgent.toLowerCase())
@@ -7,22 +6,27 @@ $( ->
   $.browser.ios = true if $.browser.iphone? or $.browser.ipad? or $.browser.ipod?
   $.browser.smart_phone = true if $.browser.android? or $.browser.iphone?
 #  $.browser.smart_phone = true
+  window.console.log($.browser)
 
   field = document.getElementById('field')
-  $(field)
-  .width(window.innerWidth)
-  .height(window.innerHeight)
-  .addClass('checkered')
-  .hide()
-
   puzzle = new Puzzle(field)
   
   image = new Image()
-  image.onload = ->
+  $(image).on('load', ->
     image.aspect_ratio = image.width / image.height
     cutter = new StandardGridCutter()
     
-    cutter.nx = if $.browser.smart_phone? then 4 else 30
+    cutter.nx = switch puzzle.difficulty
+      when 'easy'
+        4
+      when 'normal'
+        10
+      when 'hard'
+        20
+      when 'lunatic'
+        40
+      else
+        10
     cutter.ny = Math.round(cutter.nx / image.aspect_ratio)
     cutter.width = image.width
     cutter.height = image.height
@@ -46,17 +50,21 @@ $( ->
     else
       puzzle.fill()
 
-    $(field).fadeIn()
-    
     p = document.createElement('p')
     p.id = 'piece-count'
     $(p).text("#{cutter.count} ( #{cutter.nx} x #{cutter.ny} )")
-    $("#info")[0].appendChild(p)
+    $("#info").prepend(p)
+
+    Command.onPost.push((cmd) =>
+      if cmd instanceof MergeCommand
+        $("#progressbar").width((puzzle.progress * 100).toFixed(0) + '%')
+        sounds?.merge?.play()
+      return
+    )
 
     p = document.createElement('p')
     p.id = 'ticker'
-    $("#info")[0].appendChild(p)
-    #$("#info").text("sh: #{screen.height} wh: #{window.innerHeight}")
+    $("#info").append(p)
 
     Ticker.setFPS(60)
     Ticker.addListener(window)
@@ -66,7 +74,7 @@ $( ->
         puzzle.stage.update()
         puzzle.stage.invalidated = null
       $("#ticker").text("FPS: #{Math.round(Ticker.getMeasuredFPS())}")
-
+  )
 
 
   for a in $('a')
@@ -84,14 +92,29 @@ $( ->
           puzzle.zoom(window.innerWidth / 2, window.innerHeight / 2, 1 / 1.2)
           return false
 
-  if $.browser.smart_phone?
-    image.src = $('#image-list > .small').attr('data-src')
-  else
-    image.src = $('#image-list > .large').attr('data-src')
-
-  puzzle.sounds = {
+  sounds = {
     merge: $('#sound-list > .merge')[0]
   }
+
+  window.start = (art_id, difficulty) ->
+    puzzle.difficulty = difficulty
+    $(image).on('load', ->
+      $('body')
+      .css('overflow', 'hidden')
+
+      $('#playboard')
+      .css('background-color', 'rgba(0,0,40,0.9)')
+      
+      $('.navbar, .container').hide()
+      $('#playboard').fadeIn('slow', ->
+        $('body').addClass('checkered')
+      )
+    )
+    
+    if $.browser.smart_phone?
+      image.src = $("#{art_id} > .image-list > .small").attr('data-src')
+    else
+      image.src = $("#{art_id} > .image-list > .large").attr('data-src')
 
   window.puzzle = puzzle
 )

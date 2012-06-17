@@ -2,16 +2,13 @@ class BrowserController
   constructor: (@puzzle) ->
   
   attach: ->
-    $('body')
-    .css('background-color', '#000')
-    .css('overflow', 'hidden')
     $(window).on('resize', @onWindowResize)
 
     @onWindowResize()
     return
 
   onWindowResize: =>
-    [w, h] = [window.innerWidth, window.innerHeight]
+    { innerWidth: w, innerHeight: h } = window
     if $.browser.android?
       window.scrollTo(0, 1);
       
@@ -22,12 +19,6 @@ class BrowserController
     .css('top', (window.innerHeight - h)/2)
     .width(w)
     .height(h)
-    @puzzle.background.width = w
-    @puzzle.background.height = h
-    @puzzle.background.graphics
-    .clear()
-    .beginFill(@puzzle.background.color)
-    .rect(0, 0, @puzzle.background.width, @puzzle.background.height)
     @puzzle.invalidate()
     return
 

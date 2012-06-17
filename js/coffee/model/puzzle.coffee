@@ -2,18 +2,12 @@ class Puzzle
   constructor: (canvas) ->
     @stage = new Stage(canvas)
     @image = null
-    @sounds = null
     @cutter = null
     @pieces = []
     @rotation_tolerance = 24
     @translation_tolerance = 0
   
   initizlize: (@image, @cutter) ->
-    @background = new Shape()
-    @background.color = "#002"
-    @background.alpha = 0.9
-    @stage.addChild(@background)
-
     @pieces = @cutter.cut(@image)
     @translation_tolerance = @cutter.linear_measure / 8
 
@@ -34,12 +28,16 @@ class Puzzle
     @foreground = new Container()
     @stage.addChild(@foreground)
 
-    Command.onPost.push((cmd) =>
+    Command.onPost.unshift((cmd) =>
       if cmd instanceof MergeCommand
-        @sounds?.merge?.play()
+        @updateProgress()
       return
     )
 
+  updateProgress: ->
+    i = (p for p in @pieces when !p.isAlive()).length
+    @progress = i / (@cutter.count - 1)
+    
   tryMerge: (piece) ->
     for p in piece.getAdjacentPieces() when p.isWithinTolerance(piece)
       new MergeCommand(p, piece).commit()
