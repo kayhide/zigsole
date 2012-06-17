@@ -8,6 +8,11 @@ class Puzzle
     @translation_tolerance = 0
   
   initizlize: (@image, @cutter) ->
+    @background = new Shape()
+    @background.color = "#002"
+    @background.alpha = 0.9
+    @stage.addChild(@background)
+
     @pieces = @cutter.cut(@image)
     @translation_tolerance = @cutter.linear_measure / 8
 

@@ -92,6 +92,7 @@ class MouseController
               .to(@puzzle.container)
             vec = @captured.point.subtract(pt0)
             new TranslateCommand(@captured.piece, vec).post()
+            return
           else
             @captured.point = new Point(e.clientX, e.clientY)
               .fromWindow()
