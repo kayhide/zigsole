@@ -36,7 +36,7 @@ $( ->
       new TouchController(puzzle).attach()
     else
       new BrowserController(puzzle).attach()
-      new DoubleCanvasController(puzzle).attach()
+      new MouseController(puzzle).attach()
 
     puzzle.shuffle()
 

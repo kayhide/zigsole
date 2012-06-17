@@ -125,6 +125,7 @@ Point::toGlobal = ->
 
 Point::fromWindow = ->
   pt = @clone()
+  pt.on_global = null
   pt.on_window = true
   pt
 

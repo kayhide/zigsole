@@ -9,8 +9,6 @@ class Puzzle
     @translation_tolerance = 0
   
   initizlize: (@image, @cutter) ->
-    #@stage.enableMouseOver()
-    
     @background = new Shape()
     @background.color = "#002"
     @background.alpha = 0.9
