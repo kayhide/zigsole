@@ -1,9 +1,21 @@
-class MouseController
+class DoubleCanvasController
   constructor: (@puzzle) ->
     @colors =
       shadow: "#AFF"
   
   attach: ->
+    active_canvas = document.createElement('canvas')
+    active_canvas.id = "active"
+    $(@puzzle.stage.canvas).after(active_canvas)
+    
+    $(active_canvas)
+    .css('position', 'absolute')
+    #.css('background-color', 'rgba(200, 255, 255, 0.5)')
+    .hide()
+    .draggable({ cursor: 'move', scroll: false })
+    
+    @active_stage = new Stage(active_canvas)
+    
     $(@puzzle.stage.canvas).on('mousewheel', (e) =>
       e = e.originalEvent
       unless @captured?
@@ -33,17 +45,16 @@ class MouseController
         if @captured?.piece == cmd.piece
           if cmd instanceof RotateCommand
             @putToActivelayer(cmd.piece)
-            @puzzle.activelayer.invalidate()
         else
           p = cmd.piece
           { x: p.shape.x, y: p.shape.y } = p.position()
           p.shape.rotation = p.rotation()
-          @puzzle.stage.invalidate()
+          @puzzle.invalidate()
       if cmd instanceof MergeCommand
         if @captured?.piece == cmd.piece or @captured?.piece == cmd.mergee
           @release()
         cmd.mergee.shape.remove()
-        @puzzle.stage.invalidate()
+        @puzzle.invalidate()
       return
     )
 
@@ -51,26 +62,34 @@ class MouseController
     boundary = p.getBoundary().inflate(10)
     pt0 = @puzzle.container.localToWindow(boundary.x, boundary.y)
     pt1 = @puzzle.container.localToWindow(boundary.x + boundary.width, boundary.y + boundary.height)
-    @puzzle.activelayer.copyTransform(@puzzle.container)
-    @puzzle.activelayer.x = 0
-    @puzzle.activelayer.y = 0
-    @puzzle.activelayer.canvas.width = (pt1.x - pt0.x)
-    @puzzle.activelayer.canvas.height = (pt1.y - pt0.y)
-    $(@puzzle.activelayer.canvas)
+    @active_stage.copyTransform(@puzzle.container)
+    @active_stage.x = 0
+    @active_stage.y = 0
+    @active_stage.canvas.width = (pt1.x - pt0.x)
+    @active_stage.canvas.height = (pt1.y - pt0.y)
+    $(@active_stage.canvas)
     .css('left', pt0.x)
     .css('top', pt0.y)
-    .width(@puzzle.activelayer.canvas.width)
-    .height(@puzzle.activelayer.canvas.height)
+    .width(@active_stage.canvas.width)
+    .height(@active_stage.canvas.height)
     .show()
     { x: p.shape.x, y: p.shape.y } =
       p.position()
       .from(@puzzle.container)
-      .to(@puzzle.activelayer)
+      .to(@active_stage)
     p.shape.rotation = p.rotation()
-    @puzzle.activelayer.addChild(p.shape)
-    @puzzle.activelayer.update()
+    @active_stage.addChild(p.shape)
+    @updateActive()
+
+  updateActive: ->
+    if @active_stage.children.length > 0
+      $(@active_stage.canvas).show()
+    else
+      $(@active_stage.canvas).hide()
+    @active_stage.update()
 
   capture: (p, point, event) ->
+    return unless p.isAlive()
     if @captured?
       Command.commit()
     else
@@ -84,12 +103,12 @@ class MouseController
       p.shape.shadow = new Shadow(@colors.shadow, 0, 0, blur)
       @putToActivelayer(p)
       @puzzle.invalidate()
-      $(@puzzle.activelayer.canvas).on(
+      $(@active_stage.canvas).on(
         drag: (e, ui) =>
           pt =
             new Point(e.clientX, e.clientY)
             .toWindow()
-            .to(@puzzle.activelayer)
+            .to(@active_stage)
             .to(@puzzle.container)
           vec = pt.subtract(@captured.point)
           @captured.point = pt
@@ -100,7 +119,7 @@ class MouseController
           @captured.point =
             new Point(e.clientX, e.clientY)
             .toWindow()
-            .to(@puzzle.activelayer)
+            .to(@active_stage)
             .to(@puzzle.container)
           return
         mouseup: (e, ui) =>
@@ -121,7 +140,7 @@ class MouseController
             @captured.point =
               new Point(e.clientX, e.clientY)
               .toWindow()
-              .to(@puzzle.activelayer)
+              .to(@active_stage)
               .to(@puzzle.container)
             pt = @captured.point.to(@captured.piece.shape)
             unless @captured.piece.shape.hitTest(pt.x, pt.y)
@@ -129,7 +148,7 @@ class MouseController
           return
       )
       if event?.type == 'mousedown'
-        $(@puzzle.activelayer.canvas).trigger(event)
+        $(@active_stage.canvas).trigger(event)
 
   release: ->
     if @captured?
@@ -141,10 +160,11 @@ class MouseController
         p.shape.rotation = p.rotation()
         @puzzle.container.addChild(p.shape)
       @captured = null
-      $(@puzzle.activelayer.canvas).off('drag dragstart mouseup mousewheel')
+      $(@active_stage.canvas).off('drag dragstart mouseup mousewheel')
       $(window).off('mousemove')
       Command.commit()
-      @puzzle.invalidate()
+      @puzzle.stage.update()
+      @updateActive()
 
   zoom: (x, y, scale) ->
     @puzzle.zoom(x, y, scale)
@@ -162,14 +182,14 @@ class MouseController
         @puzzle.wrapper.y += pt.y - last_point.y
       
         last_point = pt;
-        @puzzle.stage.invalidate();
+        @puzzle.invalidate();
         return
       mouseup: (e, ui) =>
         @puzzle.wrapper.uncache()
-        @puzzle.stage.invalidate();
+        @puzzle.invalidate();
         $(window).off('mousemove mouseup')
         return
     )
 
 
-@MouseController = MouseController
+@DoubleCanvasController = DoubleCanvasController

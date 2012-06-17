@@ -1,7 +1,6 @@
 class Puzzle
-  constructor: (canvas, front) ->
+  constructor: (canvas) ->
     @stage = new Stage(canvas)
-    @activelayer = new Stage(front)
     @image = null
     @sounds = null
     @cutter = null
@@ -107,7 +106,6 @@ class Puzzle
 
   invalidate: ->
     @stage.invalidate()
-    @activelayer.invalidate()
 
 
 @Puzzle = Puzzle

@@ -7,20 +7,15 @@ $( ->
   $.browser.ios = true if $.browser.iphone? or $.browser.ipad? or $.browser.ipod?
   $.browser.smart_phone = true if $.browser.android? or $.browser.iphone?
 #  $.browser.smart_phone = true
-  
-  field = $("#field")
-  field
+
+  field = document.getElementById('field')
+  $(field)
   .width(window.innerWidth)
   .height(window.innerHeight)
-
-  front = $("#active")
-  front
-#  .css('background-color', 'rgba(200, 255, 255, 0.5)')
+  .addClass('checkered')
   .hide()
-  .draggable({ cursor: 'move', scroll: false })
 
-  
-  puzzle = new Puzzle(field[0], front[0])
+  puzzle = new Puzzle(field)
   
   image = new Image()
   image.onload = ->
@@ -41,7 +36,7 @@ $( ->
       new TouchController(puzzle).attach()
     else
       new BrowserController(puzzle).attach()
-      new MouseController(puzzle).attach()
+      new DoubleCanvasController(puzzle).attach()
 
     puzzle.shuffle()
 
@@ -51,8 +46,7 @@ $( ->
     else
       puzzle.fill()
 
-    
-    field.addClass('checkered')
+    $(field).fadeIn()
     
     p = document.createElement('p')
     p.id = 'piece-count'
@@ -71,13 +65,6 @@ $( ->
       if puzzle.stage.invalidated?
         puzzle.stage.update()
         puzzle.stage.invalidated = null
-      if puzzle.activelayer.invalidated?
-        if puzzle.activelayer.children.length > 0
-          $(puzzle.activelayer.canvas).show()
-        else
-          $(puzzle.activelayer.canvas).hide()
-        puzzle.activelayer.update()
-        puzzle.activelayer.invalidated = null
       $("#ticker").text("FPS: #{Math.round(Ticker.getMeasuredFPS())}")
 
 
