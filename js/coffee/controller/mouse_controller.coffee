@@ -51,7 +51,7 @@ class MouseController
 
   capture: (p, point, event) ->
     unless @captured?
-      window.console.log("captured[#{p.id}] ( #{point.x}, #{point.y} )")
+      window.console.log("captured[#{p.id}] ( #{point.x.toFixed(2)}, #{point.y.toFixed(2)} )")
       @captured =
         piece: p
         point: point

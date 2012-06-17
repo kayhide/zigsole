@@ -85,15 +85,13 @@ $( ->
           return false
 
   if $.browser.smart_phone?
-    image.src = "asset/AA145_L_320.jpg"
+    image.src = $('#image-list > .small').attr('data-src')
   else
-#    image.src = "asset/AA145_L.jpg"
-    image.src = "asset/IMG_1605.JPG"
+    image.src = $('#image-list > .large').attr('data-src')
 
   puzzle.sounds = {
-    merge: document.getElementById("se-merge")
+    merge: $('#sound-list > .merge')[0]
   }
 
   window.puzzle = puzzle
-  window.pieces = puzzle.pieces
 )
