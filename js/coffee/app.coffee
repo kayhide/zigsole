@@ -112,9 +112,42 @@ $( ->
     )
     
     if $.browser.smart_phone?
-      image.src = $("#{art_id} > .image-list > .small").attr('data-src')
+      image.src = $("##{art_id} > .image-list > .small").attr('data-src')
     else
-      image.src = $("#{art_id} > .image-list > .large").attr('data-src')
+      image.src = $("##{art_id} > .image-list > .large").attr('data-src')
 
   window.puzzle = puzzle
+
+
+  class Art
+    constructor: (id, @basename, @caption) ->
+      @id = "art-#{id}"
+      @thumbnail = "asset/#{@basename}_260.jpg"
+      @image_sources = [
+        { size: 'small', ref: "asset/#{@basename}_480.jpg" }
+        { size: 'medium', ref: "asset/#{@basename}_980.jpg" }
+        { size: 'large', ref: "asset/#{@basename}.jpg" }
+      ]
+      @links = [
+        { label: 'Easy', level: 'easy' }
+        { label: 'Normal', level: 'normal' }
+        { label: 'Hard', level: 'hard' }
+      ]
+
+    onClick: (data) =>
+      start(@id, data.level)
+      false
+
+  class ViewModel
+    arts: [
+      new Art(1, 'IMG_0248', 'Firework')
+      new Art(2, 'IMG_0681', 'Sunrise')
+      new Art(3, 'IMG_1291', 'Lake')
+      new Art(4, 'IMG_2062', 'Food')
+      new Art(5, 'IMG_2887', 'Artillery')
+      new Art(6, 'IMG_9233', 'Mountain')
+    ]
+
+
+  ko.applyBindings(new ViewModel());
 )

@@ -4,6 +4,7 @@
 <script src="libs/js/jquery-1.7.2.min.js"></script>
 <script src="libs/js/jquery-ui-1.8.21.custom.min.js"></script>
 <script src="libs/js/easeljs-0.4.2.min.js"></script>
+<script src="libs/js/knockout-2.1.0.js"></script>
 <link href="libs/css/bootstrap.min.css" rel="stylesheet">
 <link href="libs/css/bootstrap-responsive.min.css" rel="stylesheet">
 
@@ -62,117 +63,22 @@
         <p>Select a image and just play for it.</p>
       </div>
 
-      <ul class="thumbnails">
-      <li id="art-1" class="span3">
+      <ul class="thumbnails" data-bind="foreach: arts">
+      <li class="span3" data-bind="attr: { id: id }">
       <div class="thumbnail">
-      <img src="asset/IMG_0248_260.jpg" alt="" />
+      <img data-bind="attr: { src: thumbnail }" alt="" />
       <div class="caption">
-      <h5>Firework</h5>
-      <a class="btn btn-primary" href="#" onclick="start('#art-1');return false;">
+      <h5 data-bind="text: caption"></h5>
+      <!-- ko foreach: links -->
+      <button class="btn btn-primary" data-bind="click: $parent.onClick">
       <i class="icon-play icon-white"></i>
-      Start
-      </a>
+      <span data-bind="text: label"></span>
+      </button>
+      <!-- /ko -->
       </div>
       </div>
-      <div class="image-list">
-      <span class="small" data-src="asset/IMG_0248_480.jpg"></span>
-      <span class="medium" data-src="asset/IMG_0248_980.jpg"></span>
-      <span class="large" data-src="asset/IMG_0248.jpg"></span>
-      </div>
-      </li>
-      
-      <li id="art-2" class="span3">
-      <div class="thumbnail">
-      <img src="asset/IMG_0681_260.jpg" alt="" />
-      <div class="caption">
-      <h5>Sunrise</h5>
-      <a class="btn btn-primary" href="#" onclick="start('#art-2');return false;">
-      <i class="icon-play icon-white"></i>
-      Start
-      </a>
-      </div>
-      </div>
-      <div class="image-list">
-      <span class="small" data-src="asset/IMG_0681_480.jpg"></span>
-      <span class="medium" data-src="asset/IMG_0681_980.jpg"></span>
-      <span class="large" data-src="asset/IMG_0681.jpg"></span>
-      </div>
-      </li>
-
-      <li id="art-3" class="span3">
-      <div class="thumbnail">
-      <img src="asset/IMG_1291_260.jpg" alt="" />
-      <div class="caption">
-      <h5>Lake</h5>
-      <a class="btn btn-primary" href="#" onclick="start('#art-3');return false;">
-      <i class="icon-play icon-white"></i>
-      Start
-      </a>
-      </div>
-      </div>
-      <div class="image-list">
-      <span class="small" data-src="asset/IMG_1291_480.jpg"></span>
-      <span class="medium" data-src="asset/IMG_1291_980.jpg"></span>
-      <span class="large" data-src="asset/IMG_1291.jpg"></span>
-      </div>
-      </li>
-
-      <li id="art-4" class="span3">
-      <div class="thumbnail">
-      <img src="asset/IMG_2062_260.jpg" alt="" />
-      <div class="caption">
-      <h5>Food</h5>
-      <a class="btn btn-primary" href="#" onclick="start('#art-4');return false;">
-      <i class="icon-play icon-white"></i>
-      Start
-      </a>
-      </div>
-      </div>
-      <div class="image-list">
-      <span class="small" data-src="asset/IMG_2062_480.jpg"></span>
-      <span class="medium" data-src="asset/IMG_2062_980.jpg"></span>
-      <span class="large" data-src="asset/IMG_2062.jpg"></span>
-      </div>
-      </li>
-
-      <li id="art-5" class="span3">
-      <div class="thumbnail">
-      <img src="asset/IMG_2887_260.jpg" alt="" />
-      <div class="caption">
-      <h5>Artillery</h5>
-      <a class="btn btn-primary" href="#" onclick="start('#art-5', 'easy');return false;">
-      <i class="icon-play icon-white"></i> Easy
-      </a>
-      <a class="btn btn-primary" href="#" onclick="start('#art-5', 'normal');return false;">
-      <i class="icon-play icon-white"></i> Normal
-      </a>
-      <a class="btn btn-primary" href="#" onclick="start('#art-5', 'hard');return false;">
-      <i class="icon-play icon-white"></i> Hard
-      </a>
-      </div>
-      </div>
-      <div class="image-list">
-      <span class="small" data-src="asset/IMG_2887_480.jpg"></span>
-      <span class="medium" data-src="asset/IMG_2887_980.jpg"></span>
-      <span class="large" data-src="asset/IMG_2887.jpg"></span>
-      </div>
-      </li>
-
-      <li id="art-6" class="span3">
-      <div class="thumbnail">
-      <img src="asset/IMG_9233_260.jpg" alt="" />
-      <div class="caption">
-      <h5>Mountain</h5>
-      <a class="btn btn-primary" href="#" onclick="start('#art-6');return false;">
-      <i class="icon-play icon-white"></i>
-      Start
-      </a>
-      </div>
-      </div>
-      <div class="image-list">
-      <span class="small" data-src="asset/IMG_9233_480.jpg"></span>
-      <span class="medium" data-src="asset/IMG_9233_980.jpg"></span>
-      <span class="large" data-src="asset/IMG_9233.jpg"></span>
+      <div class="image-list" data-bind="foreach: image_sources">
+      <span data-bind="attr: { class: size,'data-src': ref }"></span>
       </div>
       </li>
       </ul>
