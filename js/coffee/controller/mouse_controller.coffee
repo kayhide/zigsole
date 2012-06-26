@@ -22,6 +22,8 @@ class MouseController
     )
 
     $(@puzzle.stage.canvas).on('mousedown', (e) =>
+      if @captured?
+        return
       pt = new Point(e.offsetX, e.offsetY)
       p = @puzzle.stage.getObjectUnderPoint(pt.x, pt.y)?.piece
       if p?
@@ -50,7 +52,7 @@ class MouseController
     @activelayer.addChild(p.shape)
 
   capture: (p, point, event) ->
-    unless @captured?
+    if p.isAlive() and !@captured?
       window.console.log("captured[#{p.id}] ( #{point.x.toFixed(2)}, #{point.y.toFixed(2)} )")
       @captured =
         piece: p
