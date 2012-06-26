@@ -5,7 +5,7 @@ require 'pathname'
 @username = ENV['USERNAME']
 @password = ENV['PASSWORD']
 @dir = ENV['DIR']
-@uploding_files = ['**/*.js', '**/*.html', '**/*.css']
+@uploding_files = ['**/*.js', '**/*.html', '**/*.css', 'asset/**/*', 'libs/**/*']
 
 @jstestdriver_dir = 'c:/usr/jsTestDriver'
 
