@@ -59,6 +59,10 @@ $( ->
       if cmd instanceof MergeCommand
         $("#progressbar").width((puzzle.progress * 100).toFixed(0) + '%')
         sounds?.merge?.play()
+        if puzzle.progress == 1
+          $('#finished').fadeIn('slow', ->
+            $('#finished').css('opacity', 0.99)
+          )
       return
     )
 
@@ -105,7 +109,7 @@ $( ->
       $('#playboard')
       .css('background-color', 'rgba(0,0,40,0.9)')
       
-      $('.navbar, .container').hide()
+      $('.navbar, #art-list').hide()
       $('#playboard').fadeIn('slow', ->
         $('body').addClass('checkered')
       )
