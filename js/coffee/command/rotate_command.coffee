@@ -3,7 +3,7 @@ class RotateCommand extends TransformCommand
     mtx = new Matrix2D()
     mtx.translate(-@center.x, -@center.y)
     mtx.rotate(Math.PI * @degree / 180)
-    mtx.translate(center.x, center.y)
+    mtx.translate(@center.x, @center.y)
     @position = @piece.position().apply(mtx)
     @rotation = @piece.rotation() + @degree
 
