@@ -19,9 +19,19 @@ def java arg
   sh "java #{arg.gsub '/', '\\'}"
 end
 
+desc 'builds coffee files.'
+task :build do
+  coffee '-co docs/js src'
+end
+
 desc 'watches coffee files.'
 task :watch do
-  coffee '-wco js/src js/coffee'
+  coffee '-wco docs/js src'
+end
+
+desc 'starts browser syncs.'
+task :browse do
+  sh "browser-sync start --server --ss docs"
 end
 
 desc 'starts test server.'
